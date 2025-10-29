@@ -13,7 +13,7 @@
 
 ## 在线演示
 
-[点击这里查看在线演示](https://your-vercel-app.vercel.app)
+[点击这里查看在线演示](https://deepseek-balance-checker.vercel.app)
 
 ## 本地运行
 
@@ -26,7 +26,7 @@
 
 1. 克隆项目
 ```bash
-git clone https://github.com/your-username/deepseek-balance-checker.git
+git clone https://github.com/bigFayer/deepseek-balance-checker.git
 cd deepseek-balance-checker
 ```
 
@@ -59,7 +59,7 @@ npm start
 
 ### 一键部署
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-username/deepseek-balance-checker)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/bigFayer/deepseek-balance-checker)
 
 ### 手动部署
 

@@ -101,11 +101,32 @@ async function checkBalance () {
     if (data.success) {
       showResult(data.data);
     } else {
-      showError(data.error || '查询失败');
+      // 如果有详细错误信息，传递给错误显示函数
+      if (data.details) {
+        showError(data.error || '查询失败', data.details);
+      } else {
+        showError(data.error || '查询失败');
+      }
     }
   } catch (err) {
     console.error('请求错误:', err);
-    showError('网络连接失败，请检查网络后重试');
+
+    // 提供更详细的错误信息
+    const errorDetails = {
+      message: err.message,
+      stack: err.stack,
+      timestamp: new Date().toISOString()
+    };
+
+    // 根据错误类型提供更友好的错误消息
+    let errorMessage = '网络连接失败，请检查网络后重试';
+    if (err.name === 'TypeError' && err.message.includes('fetch')) {
+      errorMessage = '网络请求失败，请检查网络连接或服务器状态';
+    } else if (err.name === 'AbortError') {
+      errorMessage = '请求超时，请稍后重试';
+    }
+
+    showError(errorMessage, errorDetails);
   }
 }
 
@@ -123,10 +144,10 @@ function showResult (data) {
   result.classList.remove('hidden');
 
   // 更新余额信息
-  currentBalance.textContent = formatCurrency(data.balance);
+  currentBalance.textContent = formatCurrency(data.balance, data.currency);
   currency.textContent = data.currency || 'USD';
-  totalGranted.textContent = formatCurrency(data.total_granted);
-  totalUsed.textContent = formatCurrency(data.total_used);
+  totalGranted.textContent = formatCurrency(data.total_granted, data.currency);
+  totalUsed.textContent = formatCurrency(data.total_used, data.currency);
 
   // 计算使用进度
   if (data.total_granted > 0) {
@@ -178,10 +199,30 @@ function showResult (data) {
 }
 
 // 显示错误
-function showError (message) {
+function showError (message, details = null) {
   hideAllSections();
   error.classList.remove('hidden');
   errorMessage.textContent = message;
+
+  // 如果有详细信息，添加到错误区域
+  if (details) {
+    const detailsElement = document.createElement('div');
+    detailsElement.className = 'error-details';
+    detailsElement.innerHTML = `
+      <details>
+        <summary>详细信息</summary>
+        <pre>${JSON.stringify(details, null, 2)}</pre>
+      </details>
+    `;
+
+    // 移除之前的详细信息（如果有）
+    const existingDetails = error.querySelector('.error-details');
+    if (existingDetails) {
+      error.removeChild(existingDetails);
+    }
+
+    error.appendChild(detailsElement);
+  }
 
   // 恢复按钮状态
   checkBtn.disabled = false;
@@ -206,14 +247,26 @@ function hideAllSections () {
 
 
 // 格式化货币
-function formatCurrency (amount) {
+function formatCurrency (amount, currency = 'USD') {
   const num = parseFloat(amount) || 0;
-  return new Intl.NumberFormat('zh-CN', {
-    style: 'currency',
-    currency: 'CNY',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(num);
+
+  // 根据货币类型选择格式化选项
+  if (currency === 'CNY' || currency === 'RMB') {
+    return new Intl.NumberFormat('zh-CN', {
+      style: 'currency',
+      currency: 'CNY',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(num);
+  } else {
+    // 默认使用USD格式
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(num);
+  }
 }
 
 // 格式化日期时间

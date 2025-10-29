@@ -27,5 +27,6 @@
     "server.js": {
       "maxDuration": 10
     }
-  }
+  },
+  "name": "deepseek-balance-checker"
 }
