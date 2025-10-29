@@ -144,10 +144,19 @@ function showResult (data) {
   result.classList.remove('hidden');
 
   // 更新余额信息
-  currentBalance.textContent = formatCurrency(data.balance, data.currency);
-  currency.textContent = data.currency || 'USD';
-  totalGranted.textContent = formatCurrency(data.total_granted, data.currency);
-  totalUsed.textContent = formatCurrency(data.total_used, data.currency);
+  const currencyType = data.currency || 'USD';
+  const currencySymbol = getCurrencySymbol(currencyType);
+  const currencyText = `${currencySymbol} ${currencyType}`;
+  
+  currentBalance.textContent = formatCurrencyWithoutSymbol(data.balance);
+  currency.textContent = currencyText;
+  totalGranted.textContent = formatCurrencyWithoutSymbol(data.total_granted);
+  totalUsed.textContent = formatCurrencyWithoutSymbol(data.total_used);
+  
+  // 更新所有货币符号显示
+  document.querySelectorAll('.currency').forEach(el => {
+    el.textContent = currencyText;
+  });
 
   // 计算使用进度
   if (data.total_granted > 0) {
@@ -247,6 +256,27 @@ function hideAllSections () {
   error.classList.add('hidden');
 }
 
+
+// 获取货币符号
+function getCurrencySymbol(currency) {
+  const symbols = {
+    'USD': '$',
+    'CNY': '¥',
+    'RMB': '¥',
+    'EUR': '€',
+    'GBP': '£',
+    'JPY': '¥'
+  };
+  return symbols[currency] || '$';
+}
+
+// 格式化货币（不带符号）
+function formatCurrencyWithoutSymbol(amount) {
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount);
+}
 
 // 格式化货币
 function formatCurrency (amount, currency = 'USD') {
