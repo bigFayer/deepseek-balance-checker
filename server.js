@@ -144,10 +144,18 @@ app.post('/api/check-balance', async (req, res) => {
     });
 
     console.log('API响应状态:', response.status);
-    console.log('API响应数据:', JSON.stringify(response.data, null, 2));
+    
+    // 只在开发环境中记录详细响应数据
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('API响应数据:', JSON.stringify(response.data, null, 2));
+    }
 
     const result = parseBalanceResponse(response.data);
-    console.log('解析后的余额数据:', result);
+    
+    // 只在开发环境中记录解析后的数据
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('解析后的余额数据:', result);
+    }
 
     res.json({
       success: true,

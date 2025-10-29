@@ -3,7 +3,11 @@ const axios = require('axios');
 // 调试DeepSeek API响应
 async function debugDeepSeekAPI (apiKey) {
   console.log('🔍 开始调试DeepSeek API...');
-  console.log('📝 API密钥前缀:', apiKey.substring(0, 7) + '...');
+  
+  // 只在开发环境中显示API密钥前缀
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('📝 API密钥前缀:', apiKey.substring(0, 7) + '...');
+  }
 
   try {
     const response = await axios.get('https://api.deepseek.com/v1/user/balance', {

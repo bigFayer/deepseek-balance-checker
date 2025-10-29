@@ -176,8 +176,10 @@ function showResult (data) {
     expireInfo.classList.add('hidden');
   }
 
-  // 添加详细信息到控制台供调试
-  console.log('DeepSeek API 响应数据:', data);
+  // 只在开发环境中记录详细响应数据
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    console.log('DeepSeek API 响应数据:', data);
+  }
 
   // 如果所有余额都是0，显示提示信息
   if (data.balance === 0 && data.total_granted === 0 && data.total_used === 0) {
