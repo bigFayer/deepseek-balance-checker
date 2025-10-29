@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSeek API 余额查询</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-robot"></i>
+                <h1>DeepSeek API 余额查询</h1>
+            </div>
+            <p class="subtitle">快速查询您的DeepSeek API账户余额和使用情况</p>
+        </header>
+
+        <main class="main-content">
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="apiKey">
+                        <i class="fas fa-key"></i>
+                        API 密钥
+                    </label>
+                    <input 
+                        type="password" 
+                        id="apiKey" 
+                        placeholder="请输入您的DeepSeek API密钥"
+                        autocomplete="off"
+                    >
+                    <button type="button" class="toggle-password" onclick="togglePasswordVisibility()">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                
+                <button 
+                    id="checkBtn" 
+                    class="check-btn" 
+                    onclick="checkBalance()"
+                    disabled
+                >
+                    <i class="fas fa-search"></i>
+                    查询余额
+                </button>
+            </div>
+
+            <div id="loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p>正在查询余额...</p>
+            </div>
+
+            <div id="result" class="result-section hidden">
+                <div class="result-header">
+                    <i class="fas fa-chart-line"></i>
+                    <h2>查询结果</h2>
+                </div>
+                
+                <div class="balance-cards">
+                    <div class="balance-card primary">
+                        <div class="card-icon">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>当前余额</h3>
+                    <p class="balance-amount" id="currentBalance">¥0.00</p>
+                    <span class="currency" id="currency">CNY</span>
+                        </div>
+                    </div>
+
+                    <div class="balance-card">
+                        <div class="card-icon">
+                            <i class="fas fa-gift"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>总授予额度</h3>
+                            <p class="balance-amount" id="totalGranted">$0.00</p>
+                        </div>
+                    </div>
+
+                    <div class="balance-card">
+                        <div class="card-icon">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>已使用额度</h3>
+                            <p class="balance-amount" id="totalUsed">$0.00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="usage-progress">
+                    <div class="progress-header">
+                        <span>使用进度</span>
+                        <span id="usagePercentage">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+
+                <div id="expireInfo" class="expire-info hidden">
+                    <i class="fas fa-clock"></i>
+                    <span>到期时间: <span id="expireTime"></span></span>
+                </div>
+            </div>
+
+            <div id="error" class="error-section hidden">
+                <div class="error-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3>查询失败</h3>
+                <p id="errorMessage"></p>
+                <button class="retry-btn" onclick="retryCheck()">
+                    <i class="fas fa-redo"></i>
+                    重试
+                </button>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <p>
+                    <i class="fas fa-shield-alt"></i>
+                    您的API密钥仅在本地处理，不会发送到第三方服务器
+                </p>
+                <div class="footer-links">
+                    <a href="https://platform.deepseek.com/" target="_blank" rel="noopener">
+                        <i class="fas fa-external-link-alt"></i>
+                        DeepSeek平台
+                    </a>
+                    <a href="https://github.com" target="_blank" rel="noopener">
+                        <i class="fab fa-github"></i>
+                        GitHub
+                    </a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
