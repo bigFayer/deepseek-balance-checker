@@ -400,6 +400,36 @@ body {
     line-height: 1.6;
 }
 
+.error-details {
+    margin-top: 20px;
+    text-align: left;
+}
+
+.error-details details {
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 10px;
+}
+
+.error-details summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--danger-color);
+    padding: 5px;
+    outline: none;
+}
+
+.error-details pre {
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
 .retry-btn {
     padding: 12px 25px;
     background: var(--danger-color);
