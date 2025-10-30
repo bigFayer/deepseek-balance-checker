@@ -581,3 +581,20 @@ body {
         font-size: 1rem;
     }
 }
+
+@media (max-width: 320px) {
+    .container {
+        padding: 10px;
+    }
+    .logo h1 {
+        font-size: 1.5rem;
+    }
+    .input-section,
+    .result-section,
+    .error-section {
+        padding: 20px 15px;
+    }
+    .balance-card {
+        padding: 20px;
+    }
+}

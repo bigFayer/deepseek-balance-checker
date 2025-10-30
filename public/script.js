@@ -146,16 +146,15 @@ function showResult (data) {
   // 更新余额信息
   const currencyType = data.currency || 'USD';
   const currencySymbol = getCurrencySymbol(currencyType);
-  const currencyText = `${currencySymbol} ${currencyType}`;
   
-  currentBalance.textContent = formatCurrencyWithoutSymbol(data.balance);
-  currency.textContent = currencyText;
-  totalGranted.textContent = formatCurrencyWithoutSymbol(data.total_granted);
-  totalUsed.textContent = formatCurrencyWithoutSymbol(data.total_used);
+  // 使用正确的货币格式化函数
+  currentBalance.textContent = formatCurrency(data.balance, currencyType);
+  totalGranted.textContent = formatCurrency(data.total_granted, currencyType);
+  totalUsed.textContent = formatCurrency(data.total_used, currencyType);
   
   // 更新所有货币符号显示
   document.querySelectorAll('.currency').forEach(el => {
-    el.textContent = currencyText;
+    el.textContent = `${currencySymbol} ${currencyType}`;
   });
 
   // 计算使用进度
