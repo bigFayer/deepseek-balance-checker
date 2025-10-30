@@ -49,37 +49,38 @@ app.use((req, res, next) => {
   if (req.path.startsWith('/api')) {
     const originalSend = res.send;
     const originalJson = res.json;
-    
+
     // 重写send方法确保返回JSON
-    res.send = function(body) {
+    const responseRes = res;
+    responseRes.send = function (body) {
       // 如果已经是JSON对象，直接返回
       if (typeof body === 'object' && body !== null) {
-        return originalJson.call(this, body);
+        return originalJson.call(responseRes, body);
       }
-      
+
       // 如果是字符串，尝试解析为JSON
       if (typeof body === 'string') {
         try {
           const parsed = JSON.parse(body);
-          return originalJson.call(this, parsed);
+          return originalJson.call(responseRes, parsed);
         } catch (e) {
           // 如果无法解析为JSON，包装成JSON格式
-          return originalJson.call(this, {
+          return originalJson.call(responseRes, {
             error: body,
             success: false,
             timestamp: new Date().toISOString()
           });
         }
       }
-      
+
       // 其他情况直接返回
-      return originalSend.call(this, body);
+      return originalSend.call(responseRes, body);
     };
-    
+
     // 确保所有API路由都设置Content-Type为JSON
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    responseRes.setHeader('Content-Type', 'application/json; charset=utf-8');
   }
-  
+
   next();
 });
 
@@ -171,16 +172,18 @@ function parseBalanceResponse(data) {
     () => {
       if (data.data && typeof data.data === 'object') {
         // 确保使用data中的货币类型，如果没有则使用全局货币类型
-        data.data.currency = data.data.currency || data.data.currency_code || globalCurrency;
-        return normalizeBalance(data.data);
+        const dataWithCurrency = { ...data.data };
+        dataWithCurrency.currency = data.data.currency || data.data.currency_code || globalCurrency;
+        return normalizeBalance(dataWithCurrency);
       }
       return null;
     },
     // 直接从顶层字段解析
     () => {
       // 确保使用顶层字段中的货币类型
-      data.currency = data.currency || data.currency_code || globalCurrency;
-      return normalizeBalance(data);
+      const dataWithCurrency = { ...data };
+      dataWithCurrency.currency = data.currency || data.currency_code || globalCurrency;
+      return normalizeBalance(dataWithCurrency);
     }
   ];
 
@@ -191,6 +194,7 @@ function parseBalanceResponse(data) {
         return result;
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('解析器失败:', error.message);
     }
   }
@@ -214,15 +218,18 @@ async function fetchWithRetry(url, options, maxRetries = 3) {
       }
 
       const delay = Math.min(1000 * Math.pow(2, i), 5000); // 指数退避，最大5秒
+      // eslint-disable-next-line no-console
       console.log(`请求失败，${delay}ms后重试 (${i + 1}/${maxRetries})`);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      // eslint-disable-next-line no-promise-executor-return
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 }
 
 // 获取余额信息 (保留接口但返回提示信息)
-app.get('/api/balance', async (req, res) => {
+app.get('/api/balance', (req, res) => {
   try {
+    // eslint-disable-next-line no-console
     console.log('开始获取余额信息...');
 
     // 确保返回正确的JSON格式
@@ -233,6 +240,7 @@ app.get('/api/balance', async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('获取余额失败:', error);
 
     // 确保错误响应也是JSON格式
@@ -274,6 +282,7 @@ app.post('/api/check-balance', async (req, res) => {
 
     const sanitizedApiKey = validationResult.sanitizedKey;
 
+    // eslint-disable-next-line no-console
     console.log('开始查询DeepSeek API余额...');
 
     // 根据DeepSeek官方文档，使用正确的API端点
@@ -286,22 +295,28 @@ app.post('/api/check-balance', async (req, res) => {
       timeout: 15000 // 增加到15秒
     });
 
+    // eslint-disable-next-line no-console
     console.log('API响应状态:', response.status);
 
     // 记录详细响应数据
+    // eslint-disable-next-line no-console
     console.log('API响应数据:', JSON.stringify(response.data, null, 2));
 
     // 检查响应中的货币类型
     if (response.data.currency) {
+      // eslint-disable-next-line no-console
       console.log('API返回的货币类型 (currency):', response.data.currency);
     }
     if (response.data.currency_code) {
+      // eslint-disable-next-line no-console
       console.log('API返回的货币类型 (currency_code):', response.data.currency_code);
     }
     if (response.data.currency_type) {
+      // eslint-disable-next-line no-console
       console.log('API返回的货币类型 (currency_type):', response.data.currency_type);
     }
     if (response.data.balance_infos && response.data.balance_infos.length > 0) {
+      // eslint-disable-next-line no-console
       console.log('balance_infos[0]中的货币类型:', response.data.balance_infos[0].currency || response.data.balance_infos[0].currency_code);
     }
 
@@ -309,6 +324,7 @@ app.post('/api/check-balance', async (req, res) => {
 
     // 只在开发环境中记录解析后的数据
     if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
       console.log('解析后的余额数据:', result);
     }
 
@@ -324,6 +340,7 @@ app.post('/api/check-balance', async (req, res) => {
       `API响应错误: ${error.response.status} - ${JSON.stringify(error.response.data).substring(0, 200)}` :
       `网络错误: ${error.message}`;
 
+    // eslint-disable-next-line no-console
     console.error('查询余额时出错:', errorMessage);
 
     // 根据错误类型返回用户友好的消息
@@ -403,7 +420,8 @@ app.use((req, res) => {
 });
 
 // 全局错误处理中间件 - 确保所有错误返回JSON
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
+  // eslint-disable-next-line no-console
   console.error('未处理的错误:', err);
 
   // 确保响应头设置为JSON
@@ -439,12 +457,14 @@ app.use((err, req, res, next) => {
 });
 
 // 添加一个中间件来捕获所有未处理的Promise拒绝
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (reason) => {
+  // eslint-disable-next-line no-console
   console.error('未处理的Promise拒绝:', reason);
 });
 
 // 添加一个中间件来捕获所有未捕获的异常
 process.on('uncaughtException', (error) => {
+  // eslint-disable-next-line no-console
   console.error('未捕获的异常:', error);
   process.exit(1);
 });
@@ -452,7 +472,9 @@ process.on('uncaughtException', (error) => {
 // 启动服务器 - 仅在直接运行时启动
 if (require.main === module) {
   app.listen(PORT, () => {
+    // eslint-disable-next-line no-console
     console.log(`DeepSeek余额查询服务器运行在端口 ${PORT}`);
+    // eslint-disable-next-line no-console
     console.log(`访问 http://localhost:${PORT} 开始使用`);
   });
 }

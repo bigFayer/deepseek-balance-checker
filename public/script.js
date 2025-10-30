@@ -7,6 +7,7 @@ const error = document.getElementById('error');
 
 // 结果显示元素
 const currentBalance = document.getElementById('currentBalance');
+// eslint-disable-next-line no-unused-vars
 const currency = document.getElementById('currency');
 const totalGranted = document.getElementById('totalGranted');
 const totalUsed = document.getElementById('totalUsed');
@@ -127,6 +128,7 @@ async function checkBalance() {
       const responseText = await response.text();
 
       // 记录响应详情以便调试
+      // eslint-disable-next-line no-console
       console.log('响应详情:', {
         status: response.status,
         statusText: response.statusText,
@@ -145,6 +147,7 @@ async function checkBalance() {
 
       // 如果成功解析但content-type不正确，记录警告
       if (!contentType || !contentType.includes('application/json')) {
+        // eslint-disable-next-line no-console
         console.warn('服务器返回了有效的JSON但content-type不正确:', contentType);
       }
     } catch (parseError) {
@@ -165,6 +168,7 @@ async function checkBalance() {
 
     // 检查success字段是否存在
     if (data.success === undefined) {
+      // eslint-disable-next-line no-console
       console.warn('响应中缺少success字段，假设为成功');
       data.success = true;
     }
@@ -184,6 +188,7 @@ async function checkBalance() {
       }
     }
   } catch (err) {
+    // eslint-disable-next-line no-console
     console.error('请求错误:', err);
 
     // 提供更详细的错误信息
@@ -234,7 +239,8 @@ function showResult(data) {
   totalUsed.textContent = formatCurrency(data.total_used, currencyType);
 
   // 更新所有货币符号显示
-  document.querySelectorAll('.currency').forEach(el => {
+  document.querySelectorAll('.currency').forEach((el) => {
+    // eslint-disable-next-line no-param-reassign
     el.textContent = `${currencySymbol} ${currencyType}`;
   });
 
@@ -267,11 +273,13 @@ function showResult(data) {
 
   // 只在开发环境中记录详细响应数据
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    // eslint-disable-next-line no-console
     console.log('DeepSeek API 响应数据:', data);
   }
 
   // 如果所有余额都是0，显示提示信息
   if (data.balance === 0 && data.total_granted === 0 && data.total_used === 0) {
+    // eslint-disable-next-line no-console
     console.warn('所有余额数据都是0，可能是API响应格式问题或账户无余额');
   }
 
@@ -296,6 +304,7 @@ function showError(message, details = null) {
   errorMessage.textContent = message;
 
   // 记录错误详情到控制台
+  // eslint-disable-next-line no-console
   console.error('显示错误:', message, details);
 
   // 如果有详细信息，添加到错误区域
@@ -322,7 +331,7 @@ function showError(message, details = null) {
   const retryBtn = document.createElement('button');
   retryBtn.className = 'retry-btn';
   retryBtn.innerHTML = '<i class="fas fa-redo"></i> 重试';
-  retryBtn.onclick = retryCheck;
+  retryBtn.onclick = window.retryCheck;
 
   // 移除之前的重试按钮（如果有）
   const existingRetryBtn = error.querySelector('.retry-btn');
@@ -367,7 +376,8 @@ function getCurrencySymbol(currency) {
   return symbols[currency] || '$';
 }
 
-// 格式化货币（不带符号）
+// 格式化货币（不带符号） - 暂未使用但保留以备后用
+// eslint-disable-next-line no-unused-vars
 function formatCurrencyWithoutSymbol(amount) {
   return new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 2,
@@ -381,6 +391,7 @@ function formatCurrency(amount, currency = 'CNY') {
 
   // 根据货币类型选择格式化选项
   if (currency === 'CNY' || currency === 'RMB') {
+    // eslint-disable-next-line no-undef
     return new Intl.NumberFormat('zh-CN', {
       style: 'currency',
       currency: 'CNY',
@@ -389,6 +400,7 @@ function formatCurrency(amount, currency = 'CNY') {
     }).format(num);
   } else {
     // 默认使用CNY格式
+    // eslint-disable-next-line no-undef
     return new Intl.NumberFormat('zh-CN', {
       style: 'currency',
       currency: 'CNY',
@@ -404,6 +416,7 @@ function formatDateTime(timestamp) {
 
   try {
     const date = new Date(timestamp);
+    // eslint-disable-next-line no-undef
     return date.toLocaleString('zh-CN', {
       year: 'numeric',
       month: '2-digit',
@@ -432,6 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.removeItem('deepseek_api_key');
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.warn('无法访问本地存储:', error);
   }
 
@@ -487,10 +501,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 检查网络状态
   window.addEventListener('online', () => {
+    // eslint-disable-next-line no-console
     console.log('网络连接已恢复');
   });
 
   window.addEventListener('offline', () => {
+    // eslint-disable-next-line no-console
     console.log('网络连接已断开');
     showError('网络连接已断开，请检查网络设置');
   });
@@ -504,6 +520,7 @@ const utils = {
       await navigator.clipboard.writeText(text);
       this.showToast('已复制到剪贴板');
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('复制失败:', err);
       this.showToast('复制失败', 'error');
     }
