@@ -306,6 +306,23 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// 处理404错误 - 所有未匹配的路由返回JSON
+app.use((req, res) => {
+  res.status(404).json({
+    error: '接口不存在',
+    success: false
+  });
+});
+
+// 全局错误处理中间件 - 确保所有错误返回JSON
+app.use((err, req, res, next) => {
+  console.error('未处理的错误:', err);
+  res.status(500).json({
+    error: '服务器内部错误',
+    success: false
+  });
+});
+
 // 启动服务器 - 仅在直接运行时启动
 if (require.main === module) {
   app.listen(PORT, () => {
