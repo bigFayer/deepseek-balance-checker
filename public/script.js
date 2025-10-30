@@ -96,6 +96,14 @@ async function checkBalance () {
       body: JSON.stringify({ apiKey })
     });
 
+    // 检查响应内容类型，确保是JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      // 如果不是JSON，读取为文本并抛出错误
+      const text = await response.text();
+      throw new Error(`服务器返回了非JSON响应: ${text.substring(0, 100)}`);
+    }
+
     const data = await response.json();
 
     if (data.success) {
