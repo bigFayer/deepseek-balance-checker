@@ -43,44 +43,27 @@ app.use(cors({
 app.use(express.json({ limit: '10kb' }));
 app.use(express.static('public'));
 
-// 强制所有API响应为JSON格式的中间件
+// 确保API响应正确格式的中间件
 app.use((req, res, next) => {
-  // 只对API路由应用JSON强制
+  // 只对API路由应用
   if (req.path.startsWith('/api')) {
-    const originalSend = res.send;
+    // 设置默认的Content-Type
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    
+    // 重写res.json方法以确保格式正确
     const originalJson = res.json;
-
-    // 重写send方法确保返回JSON
-    const responseRes = res;
-    responseRes.send = function (body) {
-      // 如果已经是JSON对象，直接返回
-      if (typeof body === 'object' && body !== null) {
-        return originalJson.call(responseRes, body);
+    res.json = function(data) {
+      // 确保数据是对象
+      if (typeof data !== 'object' || data === null) {
+        data = {
+          error: String(data),
+          success: false,
+          timestamp: new Date().toISOString()
+        };
       }
-
-      // 如果是字符串，尝试解析为JSON
-      if (typeof body === 'string') {
-        try {
-          const parsed = JSON.parse(body);
-          return originalJson.call(responseRes, parsed);
-        } catch (e) {
-          // 如果无法解析为JSON，包装成JSON格式
-          return originalJson.call(responseRes, {
-            error: body,
-            success: false,
-            timestamp: new Date().toISOString()
-          });
-        }
-      }
-
-      // 其他情况直接返回
-      return originalSend.call(responseRes, body);
+      return originalJson.call(this, data);
     };
-
-    // 确保所有API路由都设置Content-Type为JSON
-    responseRes.setHeader('Content-Type', 'application/json; charset=utf-8');
   }
-
   next();
 });
 
@@ -232,8 +215,6 @@ app.get('/api/balance', (req, res) => {
     // eslint-disable-next-line no-console
     console.log('开始获取余额信息...');
 
-    // 确保返回正确的JSON格式
-    res.setHeader('Content-Type', 'application/json');
     res.json({
       success: true,
       message: '请使用 POST /api/check-balance 接口查询余额',
@@ -243,8 +224,6 @@ app.get('/api/balance', (req, res) => {
     // eslint-disable-next-line no-console
     console.error('获取余额失败:', error);
 
-    // 确保错误响应也是JSON格式
-    res.setHeader('Content-Type', 'application/json');
     res.status(500).json({
       success: false,
       error: error.message,
@@ -255,9 +234,6 @@ app.get('/api/balance', (req, res) => {
 
 // DeepSeek API余额查询接口
 app.post('/api/check-balance', async (req, res) => {
-  // 确保响应头设置为JSON
-  res.setHeader('Content-Type', 'application/json');
-
   try {
     const { apiKey } = req.body;
 
@@ -393,9 +369,6 @@ app.post('/api/check-balance', async (req, res) => {
 
 // 健康检查接口
 app.get('/api/health', (req, res) => {
-  // 确保响应头设置为JSON
-  res.setHeader('Content-Type', 'application/json');
-
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString()
@@ -409,9 +382,6 @@ app.get('/', (req, res) => {
 
 // 处理404错误 - 所有未匹配的路由返回JSON
 app.use((req, res) => {
-  // 确保响应头设置为JSON
-  res.setHeader('Content-Type', 'application/json');
-
   res.status(404).json({
     error: '接口不存在',
     success: false,
@@ -420,12 +390,9 @@ app.use((req, res) => {
 });
 
 // 全局错误处理中间件 - 确保所有错误返回JSON
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
   // eslint-disable-next-line no-console
   console.error('未处理的错误:', err);
-
-  // 确保响应头设置为JSON
-  res.setHeader('Content-Type', 'application/json');
 
   // 根据错误类型返回不同的状态码和消息
   let statusCode = 500;
@@ -448,6 +415,9 @@ app.use((err, req, res) => {
     errorMessage = '服务暂时不可用';
   }
 
+  // 确保Content-Type设置正确
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  
   res.status(statusCode).json({
     error: errorMessage,
     success: false,
