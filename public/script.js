@@ -110,67 +110,48 @@ async function checkBalance() {
   // 显示加载状态
   showLoading();
 
+  // 创建AbortController用于请求超时控制
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30秒超时
+
   try {
+    const startTime = performance.now();
+    
     const response = await fetch('/api/check-balance', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest' // 添加请求头标识AJAX请求
       },
-      body: JSON.stringify({ apiKey })
+      body: JSON.stringify({ apiKey }),
+      signal: controller.signal
     });
 
-    // 检查响应内容类型，确保是JSON
-    const contentType = response.headers.get('content-type');
-    let data;
-
-    try {
-      // 首先尝试解析JSON，即使content-type不正确
-      const responseText = await response.text();
-
-      // 记录响应详情以便调试
-      // eslint-disable-next-line no-console
-      console.log('响应详情:', {
-        status: response.status,
-        statusText: response.statusText,
-        contentType: contentType,
-        responseLength: responseText.length,
-        responsePreview: responseText.substring(0, 200)
-      });
-
-      // 检查响应是否为空
-      if (!responseText || responseText.trim() === '') {
-        throw new Error('服务器返回了空响应');
-      }
-
-      // 尝试解析JSON
-      data = JSON.parse(responseText);
-
-      // 如果成功解析但content-type不正确，记录警告
-      if (!contentType || !contentType.includes('application/json')) {
-        // eslint-disable-next-line no-console
-        console.warn('服务器返回了有效的JSON但content-type不正确:', contentType);
-      }
-    } catch (parseError) {
-      // 如果JSON解析失败，检查content-type
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error(`服务器返回了非JSON响应。内容类型: ${contentType || '未知'}。错误: ${parseError.message}`);
-      } else {
-        throw new Error(`JSON解析失败: ${parseError.message}`);
-      }
+<<<<<<< HEAD
+    clearTimeout(timeoutId);
+    const responseTime = (performance.now() - startTime).toFixed(0);
+    
+    // 检查响应状态
+    if (!response.ok) {
+      throw new Error(`服务器响应错误: ${response.status} ${response.statusText}`);
     }
 
-    // 数据已在上面解析完成
-
-    // 检查响应数据结构
-    if (!data || typeof data !== 'object') {
-      throw new Error('服务器返回了无效的数据格式');
+    const data = await response.json();
+=======
+    clearTimeout(timeoutId);
+    const responseTime = (performance.now() - startTime).toFixed(0);
+    
+    // 检查响应状态
+    if (!response.ok) {
+      throw new Error(`服务器响应错误: ${response.status} ${response.statusText}`);
     }
 
-    // 检查success字段是否存在
-    if (data.success === undefined) {
-      // eslint-disable-next-line no-console
-      console.warn('响应中缺少success字段，假设为成功');
-      data.success = true;
+    const data = await response.json();
+>>>>>>> master
+
+    // 添加响应时间到结果数据中
+    if (data.success && data.data) {
+      data.data.responseTime = `${responseTime}ms`;
     }
 
     if (data.success) {
@@ -188,6 +169,7 @@ async function checkBalance() {
       }
     }
   } catch (err) {
+    clearTimeout(timeoutId);
     // eslint-disable-next-line no-console
     console.error('请求错误:', err);
 
@@ -200,16 +182,21 @@ async function checkBalance() {
 
     // 根据错误类型提供更友好的错误消息
     let errorMessage = '网络连接失败，请检查网络后重试';
-    if (err.name === 'TypeError' && err.message.includes('fetch')) {
-      errorMessage = '网络请求失败，请检查网络连接或服务器状态';
-    } else if (err.name === 'AbortError') {
+    if (err.name === 'AbortError') {
       errorMessage = '请求超时，请稍后重试';
+<<<<<<< HEAD
     } else if (err.message.includes('JSON解析失败')) {
       errorMessage = '服务器返回了无效的JSON格式，请稍后重试';
     } else if (err.message.includes('非JSON响应')) {
       errorMessage = '服务器返回了非JSON格式响应，请稍后重试';
     } else if (err.message.includes('空响应')) {
       errorMessage = '服务器返回了空响应，请稍后重试';
+=======
+    } else if (err.name === 'TypeError' && err.message.includes('fetch')) {
+      errorMessage = '网络请求失败，请检查网络连接或服务器状态';
+    } else if (err.message.includes('服务器响应错误')) {
+      errorMessage = err.message;
+>>>>>>> master
     }
 
     showError(errorMessage, errorDetails);
@@ -222,6 +209,19 @@ function showLoading() {
   loading.classList.remove('hidden');
   checkBtn.disabled = true;
   checkBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 查询中...';
+  
+  // 添加加载进度提示
+  const loadingText = loading.querySelector('p');
+  if (loadingText) {
+    let dots = 0;
+    const loadingInterval = setInterval(() => {
+      dots = (dots + 1) % 4;
+      loadingText.textContent = '正在查询余额' + '.'.repeat(dots);
+    }, 500);
+    
+    // 存储interval ID以便在加载完成后清除
+    loading.dataset.intervalId = loadingInterval;
+  }
 }
 
 // 显示结果
@@ -271,11 +271,33 @@ function showResult(data) {
     expireInfo.classList.add('hidden');
   }
 
+<<<<<<< HEAD
   // 只在开发环境中记录详细响应数据
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     // eslint-disable-next-line no-console
     console.log('DeepSeek API 响应数据:', data);
   }
+=======
+  // 添加响应时间信息（如果有）
+  if (data.responseTime) {
+    // 创建或更新响应时间显示元素
+    let responseTimeElement = document.getElementById('responseTime');
+    if (!responseTimeElement) {
+      responseTimeElement = document.createElement('div');
+      responseTimeElement.id = 'responseTime';
+      responseTimeElement.className = 'response-time';
+      
+      // 添加到结果区域标题下方
+      const resultHeader = document.querySelector('.result-header');
+      resultHeader.insertAdjacentElement('afterend', responseTimeElement);
+    }
+    
+    responseTimeElement.innerHTML = `<i class="fas fa-clock"></i> 响应时间: ${data.responseTime}`;
+  }
+
+  // 添加详细信息到控制台供调试
+  console.log('DeepSeek API 响应数据:', data);
+>>>>>>> master
 
   // 如果所有余额都是0，显示提示信息
   if (data.balance === 0 && data.total_granted === 0 && data.total_used === 0) {
@@ -355,8 +377,76 @@ function showError(message, details = null) {
   }, 100);
 }
 
+// 显示Toast通知
+function showToast(message, type = 'info') {
+  // 创建toast元素
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+  
+  // 添加样式
+  toast.style.position = 'fixed';
+  toast.style.bottom = '20px';
+  toast.style.right = '20px';
+  toast.style.padding = '12px 20px';
+  toast.style.borderRadius = '6px';
+  toast.style.color = 'white';
+  toast.style.fontWeight = '500';
+  toast.style.zIndex = '1000';
+  toast.style.opacity = '0';
+  toast.style.transform = 'translateY(20px)';
+  toast.style.transition = 'all 0.3s ease';
+  
+  // 根据类型设置背景色
+  switch (type) {
+    case 'success':
+      toast.style.backgroundColor = '#10b981';
+      break;
+    case 'error':
+      toast.style.backgroundColor = '#ef4444';
+      break;
+    case 'warning':
+      toast.style.backgroundColor = '#f59e0b';
+      break;
+    default:
+      toast.style.backgroundColor = '#3b82f6';
+  }
+  
+  // 添加到页面
+  document.body.appendChild(toast);
+  
+  // 显示动画
+  setTimeout(() => {
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateY(0)';
+  }, 10);
+  
+  // 自动隐藏
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(20px)';
+    
+    // 移除元素
+    setTimeout(() => {
+      if (document.body.contains(toast)) {
+        document.body.removeChild(toast);
+      }
+    }, 300);
+  }, 3000);
+}
+
 // 隐藏所有区域
+<<<<<<< HEAD
 function hideAllSections() {
+=======
+function hideAllSections () {
+  // 清除加载动画的interval（如果有）
+  if (loading.dataset.intervalId) {
+    clearInterval(loading.dataset.intervalId);
+    delete loading.dataset.intervalId;
+  }
+  
+>>>>>>> master
   loading.classList.add('hidden');
   result.classList.add('hidden');
   error.classList.add('hidden');
@@ -503,12 +593,19 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('online', () => {
     // eslint-disable-next-line no-console
     console.log('网络连接已恢复');
+    showToast('网络连接已恢复', 'success');
   });
 
   window.addEventListener('offline', () => {
     // eslint-disable-next-line no-console
     console.log('网络连接已断开');
     showError('网络连接已断开，请检查网络设置');
+  });
+  
+  // 添加页面加载性能监控
+  window.addEventListener('load', () => {
+    const loadTime = performance.now();
+    console.log(`页面加载完成，耗时: ${loadTime.toFixed(2)}ms`);
   });
 });
 

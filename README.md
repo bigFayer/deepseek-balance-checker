@@ -84,6 +84,54 @@ deepseek-balance-checker/
 └── README.md              # 项目说明
 ```
 
+## 环境变量
+
+创建 `.env` 文件并配置以下变量：
+
+```bash
+# 服务器配置
+PORT=3000
+NODE_ENV=development
+
+# CORS配置
+ALLOWED_ORIGIN=https://your-vercel-app.vercel.app
+
+# DeepSeek API配置
+DEEPSEEK_API_URL=https://api.deepseek.com/v1/user/balance
+DEEPSEEK_API_URL_FALLBACK=https://api.deepseek.com/v1/user/info
+
+# 请求限制配置
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# 请求超时配置
+REQUEST_TIMEOUT=30000
+
+# 安全配置
+# 是否启用安全响应头 (默认: true)
+ENABLE_SECURITY_HEADERS=true
+
+# 是否启用请求日志 (默认: true)
+ENABLE_REQUEST_LOGGING=true
+
+# 是否验证请求来源 (默认: false)
+VALIDATE_ORIGIN=false
+
+# IP白名单 (逗号分隔，留空表示不限制)
+ALLOWED_IPS=
+
+# API密钥最小长度 (默认: 40)
+MIN_API_KEY_LENGTH=40
+```
+
+### 安全配置说明
+
+- **ENABLE_SECURITY_HEADERS**: 启用Helmet安全中间件，添加安全HTTP头
+- **ENABLE_REQUEST_LOGGING**: 记录所有请求的详细信息
+- **VALIDATE_ORIGIN**: 验证请求的Origin和Referer头
+- **ALLOWED_IPS**: 限制只有特定IP可以访问API
+- **MIN_API_KEY_LENGTH**: 设置API密钥的最小长度要求
+
 ## API接口
 
 ### 查询余额
@@ -177,13 +225,18 @@ deepseek-balance-checker/
 - **错误处理**: 改进了错误信息泄露防护
 - **重试机制**: 添加了指数退避重试策略
 
-### 🛡️ 安全特性
-- API密钥格式验证（sk-开头，长度≥20，合法字符）
-- 请求频率限制（15分钟内最多100次请求）
-- 输入大小限制（最大10KB）
-- 生产环境CORS限制
-- 结构化错误处理
-- 安全的本地存储处理
+### 安全特性
+
+- **API密钥验证**：增强的API密钥验证，包括长度检查、字符集验证和熵检查
+- **请求频率限制**：防止API滥用，支持自定义窗口时间和最大请求数
+- **输入验证**：防止恶意输入和注入攻击
+- **安全响应头**：使用Helmet中间件添加安全HTTP头
+- **IP白名单**：可选的IP访问控制
+- **请求来源验证**：可选的Origin和Referer头验证
+- **请求日志记录**：详细的请求和安全事件日志
+- **错误处理**：不暴露敏感信息，提供详细的错误分类
+- **请求ID跟踪**：每个请求都有唯一ID，便于调试和审计
+- **缓存机制**：减少API调用次数，提高性能和安全性
 
 ## 更新日志
 

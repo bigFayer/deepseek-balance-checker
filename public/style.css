@@ -123,6 +123,20 @@ body {
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
+/* 输入框过渡效果 */
+.input-group label i {
+    transition: all 0.3s ease;
+}
+
+.input-group input:focus + .toggle-password {
+    color: var(--primary-color);
+}
+
+.input-group:focus-within label i {
+    color: var(--primary-color);
+    transform: scale(1.1);
+}
+
 /* 输入验证状态 */
 .input-group.valid input {
     border-color: var(--secondary-color);
@@ -204,6 +218,12 @@ body {
     box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
 }
 
+/* 按钮点击效果 */
+.check-btn:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 5px 10px rgba(37, 99, 235, 0.3);
+}
+
 .check-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -223,6 +243,13 @@ body {
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin: 0 auto 20px;
+}
+
+.loading p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1rem;
+    min-height: 1.5rem;
+    transition: all 0.3s ease;
 }
 
 @keyframes spin {
@@ -532,6 +559,24 @@ body {
     display: none !important;
 }
 
+/* 响应时间显示样式 */
+.response-time {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 1rem 0;
+  padding: 0.5rem 1rem;
+  background-color: rgba(59, 130, 246, 0.1);
+  border-radius: 0.5rem;
+  color: #3b82f6;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.response-time i {
+  margin-right: 0.5rem;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
     .container {
@@ -564,6 +609,11 @@ body {
     
     .footer-links {
         justify-content: center;
+    }
+
+    .response-time {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
     }
 }
 
