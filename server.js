@@ -43,6 +43,46 @@ app.use(cors({
 app.use(express.json({ limit: '10kb' }));
 app.use(express.static('public'));
 
+// 强制所有API响应为JSON格式的中间件
+app.use((req, res, next) => {
+  // 只对API路由应用JSON强制
+  if (req.path.startsWith('/api')) {
+    const originalSend = res.send;
+    const originalJson = res.json;
+    
+    // 重写send方法确保返回JSON
+    res.send = function(body) {
+      // 如果已经是JSON对象，直接返回
+      if (typeof body === 'object' && body !== null) {
+        return originalJson.call(this, body);
+      }
+      
+      // 如果是字符串，尝试解析为JSON
+      if (typeof body === 'string') {
+        try {
+          const parsed = JSON.parse(body);
+          return originalJson.call(this, parsed);
+        } catch (e) {
+          // 如果无法解析为JSON，包装成JSON格式
+          return originalJson.call(this, {
+            error: body,
+            success: false,
+            timestamp: new Date().toISOString()
+          });
+        }
+      }
+      
+      // 其他情况直接返回
+      return originalSend.call(this, body);
+    };
+    
+    // 确保所有API路由都设置Content-Type为JSON
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  }
+  
+  next();
+});
+
 // API密钥验证和清理函数
 function validateAndSanitizeApiKey(apiKey) {
   // 输入类型检查
