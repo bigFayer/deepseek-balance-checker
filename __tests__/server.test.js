@@ -1,5 +1,5 @@
 const request = require('supertest');
-const app = require('../server');
+const { app } = require('../server');
 
 describe('服务器测试', () => {
   describe('健康检查接口', () => {
@@ -94,14 +94,14 @@ describe('服务器测试', () => {
     test('应该标准化余额数据', () => {
       const mockData = {
         total_balance: 100.5,
-        currency: 'USD',
+        currency: 'CNY',
         total_grant: 200,
         total_used: 99.5
       };
 
       const result = normalizeBalance(mockData);
       expect(result.balance).toBe(100.5);
-      expect(result.currency).toBe('USD');
+      expect(result.currency).toBe('CNY');
       expect(result.total_granted).toBe(200);
       expect(result.total_used).toBe(99.5);
     });

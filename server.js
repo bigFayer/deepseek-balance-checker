@@ -53,6 +53,11 @@ function validateAndSanitizeApiKey (apiKey) {
   // 去除首尾空白字符
   const trimmedKey = apiKey.trim();
 
+  // 格式检查 - 必须在长度检查之前
+  if (!trimmedKey.startsWith('sk-')) {
+    return { isValid: false, sanitizedKey: null, error: 'API密钥必须以sk-开头' };
+  }
+
   // 长度检查
   if (trimmedKey.length < 20) {
     return { isValid: false, sanitizedKey: null, error: 'API密钥长度过短' };
@@ -60,11 +65,6 @@ function validateAndSanitizeApiKey (apiKey) {
 
   if (trimmedKey.length > 100) {
     return { isValid: false, sanitizedKey: null, error: 'API密钥长度过长' };
-  }
-
-  // 格式检查
-  if (!trimmedKey.startsWith('sk-')) {
-    return { isValid: false, sanitizedKey: null, error: 'API密钥必须以sk-开头' };
   }
 
   // 字符集检查 - 只允许字母、数字、下划线和连字符
@@ -83,17 +83,25 @@ function validateAndSanitizeApiKey (apiKey) {
 
 // 余额数据标准化函数
 function normalizeBalance (balance) {
-  // 尝试从多个可能的字段中获取货币类型
-  let currency = balance.currency || balance.currency_code || balance.currency_type || 'USD';
-  
-  // 如果API返回了balance_infos数组，尝试从中获取货币类型
+  // 如果API返回了balance_infos数组，优先使用其中的数据
   if (balance.balance_infos && balance.balance_infos.length > 0) {
-    currency = balance.balance_infos[0].currency || balance.balance_infos[0].currency_code || currency;
+    const balanceInfo = balance.balance_infos[0];
+    return {
+      balance: parseFloat(balanceInfo.total_balance || balanceInfo.balance || balanceInfo.available_balance || 0),
+      currency: balanceInfo.currency || balanceInfo.currency_code || balanceInfo.currency_type || 'CNY',
+      total_granted: parseFloat(balanceInfo.total_grant || balanceInfo.grant_balance || 0),
+      total_used: parseFloat(balanceInfo.total_used || balanceInfo.used_balance || 0),
+      expire_time: balanceInfo.expire_time || null,
+      grant_balance: parseFloat(balanceInfo.grant_balance || 0),
+      cash_balance: parseFloat(balanceInfo.cash_balance || 0),
+      available_balance: parseFloat(balanceInfo.available_balance || 0)
+    };
   }
   
+  // 否则使用顶级对象的数据
   return {
     balance: parseFloat(balance.total_balance || balance.balance || balance.available_balance || 0),
-    currency: currency,
+    currency: balance.currency || balance.currency_code || balance.currency_type || 'CNY',
     total_granted: parseFloat(balance.total_grant || balance.grant_balance || 0),
     total_used: parseFloat(balance.total_used || balance.used_balance || 0),
     expire_time: balance.expire_time || null,
@@ -106,7 +114,7 @@ function normalizeBalance (balance) {
 // 解析余额响应的统一函数
 function parseBalanceResponse (data) {
   // 首先尝试从整个响应中提取货币类型
-  let globalCurrency = data.currency || data.currency_code || data.currency_type || 'USD';
+  let globalCurrency = data.currency || data.currency_code || data.currency_type || 'CNY';
   
   const parsers = [
     // 尝试从 balance_infos 数组解析
@@ -306,4 +314,10 @@ if (require.main === module) {
   });
 }
 
-module.exports = app;
+// 导出app和函数供测试使用
+module.exports = {
+  app,
+  validateAndSanitizeApiKey,
+  normalizeBalance,
+  parseBalanceResponse
+};

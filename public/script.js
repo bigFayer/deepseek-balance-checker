@@ -144,7 +144,7 @@ function showResult (data) {
   result.classList.remove('hidden');
 
   // 更新余额信息
-  const currencyType = data.currency || 'USD';
+  const currencyType = data.currency || 'CNY';
   const currencySymbol = getCurrencySymbol(currencyType);
   
   // 使用正确的货币格式化函数
@@ -278,7 +278,7 @@ function formatCurrencyWithoutSymbol(amount) {
 }
 
 // 格式化货币
-function formatCurrency (amount, currency = 'USD') {
+function formatCurrency (amount, currency = 'CNY') {
   const num = parseFloat(amount) || 0;
 
   // 根据货币类型选择格式化选项
@@ -290,10 +290,10 @@ function formatCurrency (amount, currency = 'USD') {
       maximumFractionDigits: 2
     }).format(num);
   } else {
-    // 默认使用USD格式
-    return new Intl.NumberFormat('en-US', {
+    // 默认使用CNY格式
+    return new Intl.NumberFormat('zh-CN', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'CNY',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }).format(num);
