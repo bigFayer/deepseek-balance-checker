@@ -28,8 +28,8 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https://api.deepseek.com"]
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'", 'https://api.deepseek.com']
     }
   }
 }));
@@ -44,7 +44,7 @@ app.use(express.json({ limit: '10kb' }));
 app.use(express.static('public'));
 
 // API密钥验证和清理函数
-function validateAndSanitizeApiKey (apiKey) {
+function validateAndSanitizeApiKey(apiKey) {
   // 输入类型检查
   if (typeof apiKey !== 'string') {
     return { isValid: false, sanitizedKey: null, error: 'API密钥必须是字符串类型' };
@@ -82,7 +82,7 @@ function validateAndSanitizeApiKey (apiKey) {
 }
 
 // 余额数据标准化函数
-function normalizeBalance (balance) {
+function normalizeBalance(balance) {
   // 如果API返回了balance_infos数组，优先使用其中的数据
   if (balance.balance_infos && balance.balance_infos.length > 0) {
     const balanceInfo = balance.balance_infos[0];
@@ -97,7 +97,7 @@ function normalizeBalance (balance) {
       available_balance: parseFloat(balanceInfo.available_balance || 0)
     };
   }
-  
+
   // 否则使用顶级对象的数据
   return {
     balance: parseFloat(balance.total_balance || balance.balance || balance.available_balance || 0),
@@ -112,10 +112,10 @@ function normalizeBalance (balance) {
 }
 
 // 解析余额响应的统一函数
-function parseBalanceResponse (data) {
+function parseBalanceResponse(data) {
   // 首先尝试从整个响应中提取货币类型
-  let globalCurrency = data.currency || data.currency_code || data.currency_type || 'CNY';
-  
+  const globalCurrency = data.currency || data.currency_code || data.currency_type || 'CNY';
+
   const parsers = [
     // 尝试从 balance_infos 数组解析
     () => {
@@ -160,7 +160,7 @@ function parseBalanceResponse (data) {
 }
 
 // 带重试机制的请求函数
-async function fetchWithRetry (url, options, maxRetries = 3) {
+async function fetchWithRetry(url, options, maxRetries = 3) {
   for (let i = 0; i < maxRetries; i++) {
     try {
       const response = await axios(url, options);
@@ -180,30 +180,60 @@ async function fetchWithRetry (url, options, maxRetries = 3) {
   }
 }
 
+// 获取余额信息 (保留接口但返回提示信息)
+app.get('/api/balance', async (req, res) => {
+  try {
+    console.log('开始获取余额信息...');
+
+    // 确保返回正确的JSON格式
+    res.setHeader('Content-Type', 'application/json');
+    res.json({
+      success: true,
+      message: '请使用 POST /api/check-balance 接口查询余额',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('获取余额失败:', error);
+
+    // 确保错误响应也是JSON格式
+    res.setHeader('Content-Type', 'application/json');
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // DeepSeek API余额查询接口
 app.post('/api/check-balance', async (req, res) => {
-  const { apiKey } = req.body;
-
-  // 输入验证
-  if (!apiKey) {
-    return res.status(400).json({
-      error: 'API密钥是必需的',
-      success: false
-    });
-  }
-
-  // 使用增强的验证和清理函数
-  const validationResult = validateAndSanitizeApiKey(apiKey);
-  if (!validationResult.isValid) {
-    return res.status(400).json({
-      error: validationResult.error,
-      success: false
-    });
-  }
-
-  const sanitizedApiKey = validationResult.sanitizedKey;
+  // 确保响应头设置为JSON
+  res.setHeader('Content-Type', 'application/json');
 
   try {
+    const { apiKey } = req.body;
+
+    // 输入验证
+    if (!apiKey) {
+      return res.status(400).json({
+        error: 'API密钥是必需的',
+        success: false,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // 使用增强的验证和清理函数
+    const validationResult = validateAndSanitizeApiKey(apiKey);
+    if (!validationResult.isValid) {
+      return res.status(400).json({
+        error: validationResult.error,
+        success: false,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    const sanitizedApiKey = validationResult.sanitizedKey;
+
     console.log('开始查询DeepSeek API余额...');
 
     // 根据DeepSeek官方文档，使用正确的API端点
@@ -217,10 +247,10 @@ app.post('/api/check-balance', async (req, res) => {
     });
 
     console.log('API响应状态:', response.status);
-    
+
     // 记录详细响应数据
     console.log('API响应数据:', JSON.stringify(response.data, null, 2));
-    
+
     // 检查响应中的货币类型
     if (response.data.currency) {
       console.log('API返回的货币类型 (currency):', response.data.currency);
@@ -236,7 +266,7 @@ app.post('/api/check-balance', async (req, res) => {
     }
 
     const result = parseBalanceResponse(response.data);
-    
+
     // 只在开发环境中记录解析后的数据
     if (process.env.NODE_ENV !== 'production') {
       console.log('解析后的余额数据:', result);
@@ -244,53 +274,61 @@ app.post('/api/check-balance', async (req, res) => {
 
     res.json({
       success: true,
-      data: result
+      data: result,
+      timestamp: new Date().toISOString()
     });
 
   } catch (error) {
     // 安全地记录错误信息，不泄露敏感数据
-    const errorMessage = error.response?.data ? 
-      `API响应错误: ${error.response.status} - ${JSON.stringify(error.response.data).substring(0, 200)}` : 
+    const errorMessage = error.response?.data ?
+      `API响应错误: ${error.response.status} - ${JSON.stringify(error.response.data).substring(0, 200)}` :
       `网络错误: ${error.message}`;
-    
+
     console.error('查询余额时出错:', errorMessage);
 
     // 根据错误类型返回用户友好的消息
     if (error.response?.status === 401) {
       res.status(401).json({
         error: 'API密钥无效或已过期，请检查密钥是否正确',
-        success: false
+        success: false,
+        timestamp: new Date().toISOString()
       });
     } else if (error.response?.status === 403) {
       res.status(403).json({
         error: 'API密钥权限不足，无法访问余额信息',
-        success: false
+        success: false,
+        timestamp: new Date().toISOString()
       });
     } else if (error.response?.status === 429) {
       res.status(429).json({
         error: '请求过于频繁，请等待15分钟后再试',
-        success: false
+        success: false,
+        timestamp: new Date().toISOString()
       });
     } else if (error.code === 'ECONNABORTED') {
       res.status(408).json({
         error: '请求超时，请检查网络连接后重试',
-        success: false
+        success: false,
+        timestamp: new Date().toISOString()
       });
     } else if (error.response?.status >= 500) {
       res.status(502).json({
         error: 'DeepSeek服务暂时不可用，请稍后再试',
-        success: false
+        success: false,
+        timestamp: new Date().toISOString()
       });
     } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
       res.status(503).json({
         error: '无法连接到DeepSeek服务器，请检查网络设置',
-        success: false
+        success: false,
+        timestamp: new Date().toISOString()
       });
     } else {
       // 通用错误消息，不泄露具体错误详情
       res.status(500).json({
         error: '查询余额失败，请检查网络连接和API密钥',
-        success: false
+        success: false,
+        timestamp: new Date().toISOString()
       });
     }
   }
@@ -298,7 +336,13 @@ app.post('/api/check-balance', async (req, res) => {
 
 // 健康检查接口
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  // 确保响应头设置为JSON
+  res.setHeader('Content-Type', 'application/json');
+
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // 主页路由
@@ -308,19 +352,61 @@ app.get('/', (req, res) => {
 
 // 处理404错误 - 所有未匹配的路由返回JSON
 app.use((req, res) => {
+  // 确保响应头设置为JSON
+  res.setHeader('Content-Type', 'application/json');
+
   res.status(404).json({
     error: '接口不存在',
-    success: false
+    success: false,
+    timestamp: new Date().toISOString()
   });
 });
 
 // 全局错误处理中间件 - 确保所有错误返回JSON
 app.use((err, req, res, next) => {
   console.error('未处理的错误:', err);
-  res.status(500).json({
-    error: '服务器内部错误',
-    success: false
+
+  // 确保响应头设置为JSON
+  res.setHeader('Content-Type', 'application/json');
+
+  // 根据错误类型返回不同的状态码和消息
+  let statusCode = 500;
+  let errorMessage = '服务器内部错误';
+
+  if (err.name === 'ValidationError') {
+    statusCode = 400;
+    errorMessage = '请求参数错误';
+  } else if (err.name === 'UnauthorizedError') {
+    statusCode = 401;
+    errorMessage = '未授权访问';
+  } else if (err.name === 'ForbiddenError') {
+    statusCode = 403;
+    errorMessage = '禁止访问';
+  } else if (err.name === 'NotFoundError') {
+    statusCode = 404;
+    errorMessage = '资源不存在';
+  } else if (err.code === 'ECONNRESET' || err.code === 'ECONNABORTED') {
+    statusCode = 503;
+    errorMessage = '服务暂时不可用';
+  }
+
+  res.status(statusCode).json({
+    error: errorMessage,
+    success: false,
+    details: process.env.NODE_ENV !== 'production' ? err.message : undefined,
+    timestamp: new Date().toISOString()
   });
+});
+
+// 添加一个中间件来捕获所有未处理的Promise拒绝
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('未处理的Promise拒绝:', reason);
+});
+
+// 添加一个中间件来捕获所有未捕获的异常
+process.on('uncaughtException', (error) => {
+  console.error('未捕获的异常:', error);
+  process.exit(1);
 });
 
 // 启动服务器 - 仅在直接运行时启动

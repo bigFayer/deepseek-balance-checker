@@ -72,11 +72,33 @@ window.togglePasswordVisibility = function () {
 
 // 重试查询 - 导出供HTML使用
 window.retryCheck = function () {
-  checkBalance();
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (apiKey) {
+    // 清除之前的错误信息
+    const errorDiv = document.getElementById('error');
+    const existingDetails = errorDiv.querySelector('.error-details');
+    if (existingDetails) {
+      errorDiv.removeChild(existingDetails);
+    }
+    const existingRetryBtn = errorDiv.querySelector('.retry-btn');
+    if (existingRetryBtn) {
+      errorDiv.removeChild(existingRetryBtn);
+    }
+
+    // 清除之前的结果显示
+    const resultDiv = document.getElementById('result');
+    resultDiv.style.opacity = '0';
+    resultDiv.style.transform = 'translateY(20px)';
+
+    // 重新执行查询
+    checkBalance();
+  } else {
+    showError('请先输入API密钥');
+  }
 };
 
 // 查询余额
-async function checkBalance () {
+async function checkBalance() {
   const apiKey = apiKeyInput.value.trim();
 
   if (!apiKey) {
@@ -98,15 +120,60 @@ async function checkBalance () {
 
     // 检查响应内容类型，确保是JSON
     const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      // 如果不是JSON，读取为文本并抛出错误
-      const text = await response.text();
-      throw new Error(`服务器返回了非JSON响应: ${text.substring(0, 100)}`);
+    let data;
+
+    try {
+      // 首先尝试解析JSON，即使content-type不正确
+      const responseText = await response.text();
+
+      // 记录响应详情以便调试
+      console.log('响应详情:', {
+        status: response.status,
+        statusText: response.statusText,
+        contentType: contentType,
+        responseLength: responseText.length,
+        responsePreview: responseText.substring(0, 200)
+      });
+
+      // 检查响应是否为空
+      if (!responseText || responseText.trim() === '') {
+        throw new Error('服务器返回了空响应');
+      }
+
+      // 尝试解析JSON
+      data = JSON.parse(responseText);
+
+      // 如果成功解析但content-type不正确，记录警告
+      if (!contentType || !contentType.includes('application/json')) {
+        console.warn('服务器返回了有效的JSON但content-type不正确:', contentType);
+      }
+    } catch (parseError) {
+      // 如果JSON解析失败，检查content-type
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error(`服务器返回了非JSON响应。内容类型: ${contentType || '未知'}。错误: ${parseError.message}`);
+      } else {
+        throw new Error(`JSON解析失败: ${parseError.message}`);
+      }
     }
 
-    const data = await response.json();
+    // 数据已在上面解析完成
+
+    // 检查响应数据结构
+    if (!data || typeof data !== 'object') {
+      throw new Error('服务器返回了无效的数据格式');
+    }
+
+    // 检查success字段是否存在
+    if (data.success === undefined) {
+      console.warn('响应中缺少success字段，假设为成功');
+      data.success = true;
+    }
 
     if (data.success) {
+      // 检查data字段是否存在
+      if (!data.data) {
+        throw new Error('成功响应中缺少data字段');
+      }
       showResult(data.data);
     } else {
       // 如果有详细错误信息，传递给错误显示函数
@@ -132,6 +199,12 @@ async function checkBalance () {
       errorMessage = '网络请求失败，请检查网络连接或服务器状态';
     } else if (err.name === 'AbortError') {
       errorMessage = '请求超时，请稍后重试';
+    } else if (err.message.includes('JSON解析失败')) {
+      errorMessage = '服务器返回了无效的JSON格式，请稍后重试';
+    } else if (err.message.includes('非JSON响应')) {
+      errorMessage = '服务器返回了非JSON格式响应，请稍后重试';
+    } else if (err.message.includes('空响应')) {
+      errorMessage = '服务器返回了空响应，请稍后重试';
     }
 
     showError(errorMessage, errorDetails);
@@ -139,7 +212,7 @@ async function checkBalance () {
 }
 
 // 显示加载状态
-function showLoading () {
+function showLoading() {
   hideAllSections();
   loading.classList.remove('hidden');
   checkBtn.disabled = true;
@@ -147,19 +220,19 @@ function showLoading () {
 }
 
 // 显示结果
-function showResult (data) {
+function showResult(data) {
   hideAllSections();
   result.classList.remove('hidden');
 
   // 更新余额信息
   const currencyType = data.currency || 'CNY';
   const currencySymbol = getCurrencySymbol(currencyType);
-  
+
   // 使用正确的货币格式化函数
   currentBalance.textContent = formatCurrency(data.balance, currencyType);
   totalGranted.textContent = formatCurrency(data.total_granted, currencyType);
   totalUsed.textContent = formatCurrency(data.total_used, currencyType);
-  
+
   // 更新所有货币符号显示
   document.querySelectorAll('.currency').forEach(el => {
     el.textContent = `${currencySymbol} ${currencyType}`;
@@ -168,8 +241,8 @@ function showResult (data) {
   // 计算使用进度
   if (data.total_granted > 0) {
     const usagePercent = (data.total_used / data.total_granted) * 100;
-    usagePercentage.textContent = usagePercent.toFixed(1) + '%';
-    progressFill.style.width = Math.min(usagePercent, 100) + '%';
+    usagePercentage.textContent = `${usagePercent.toFixed(1)}%`;
+    progressFill.style.width = `${Math.min(usagePercent, 100)}%`;
 
     // 根据使用率设置进度条颜色
     if (usagePercent > 80) {
@@ -217,10 +290,13 @@ function showResult (data) {
 }
 
 // 显示错误
-function showError (message, details = null) {
+function showError(message, details = null) {
   hideAllSections();
   error.classList.remove('hidden');
   errorMessage.textContent = message;
+
+  // 记录错误详情到控制台
+  console.error('显示错误:', message, details);
 
   // 如果有详细信息，添加到错误区域
   if (details) {
@@ -242,6 +318,20 @@ function showError (message, details = null) {
     error.appendChild(detailsElement);
   }
 
+  // 添加重试按钮
+  const retryBtn = document.createElement('button');
+  retryBtn.className = 'retry-btn';
+  retryBtn.innerHTML = '<i class="fas fa-redo"></i> 重试';
+  retryBtn.onclick = retryCheck;
+
+  // 移除之前的重试按钮（如果有）
+  const existingRetryBtn = error.querySelector('.retry-btn');
+  if (existingRetryBtn) {
+    error.removeChild(existingRetryBtn);
+  }
+
+  error.appendChild(retryBtn);
+
   // 恢复按钮状态
   checkBtn.disabled = false;
   checkBtn.innerHTML = '<i class="fas fa-search"></i> 查询余额';
@@ -257,7 +347,7 @@ function showError (message, details = null) {
 }
 
 // 隐藏所有区域
-function hideAllSections () {
+function hideAllSections() {
   loading.classList.add('hidden');
   result.classList.add('hidden');
   error.classList.add('hidden');
@@ -286,7 +376,7 @@ function formatCurrencyWithoutSymbol(amount) {
 }
 
 // 格式化货币
-function formatCurrency (amount, currency = 'CNY') {
+function formatCurrency(amount, currency = 'CNY') {
   const num = parseFloat(amount) || 0;
 
   // 根据货币类型选择格式化选项
@@ -309,7 +399,7 @@ function formatCurrency (amount, currency = 'CNY') {
 }
 
 // 格式化日期时间
-function formatDateTime (timestamp) {
+function formatDateTime(timestamp) {
   if (!timestamp) return '未知';
 
   try {

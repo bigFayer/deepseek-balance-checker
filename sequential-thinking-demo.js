@@ -40,7 +40,7 @@ server.on('close', (code) => {
 });
 
 // Demonstrate the sequential_thinking tool
-function demonstrateSequentialThinking () {
+function demonstrateSequentialThinking() {
   console.log('\n🚀 Starting Sequential Thinking Demonstration...\n');
 
   // Example 1: Problem-solving sequence
@@ -98,17 +98,17 @@ function demonstrateSequentialThinking () {
   // Send examples to the server
   setTimeout(() => {
     console.log('📤 Sending Example 1: Initial problem breakdown');
-    server.stdin.write(JSON.stringify(example1) + '\n');
+    server.stdin.write(`${JSON.stringify(example1)}\n`);
   }, 1000);
 
   setTimeout(() => {
     console.log('📤 Sending Example 2: Revision of previous thought');
-    server.stdin.write(JSON.stringify(example2) + '\n');
+    server.stdin.write(`${JSON.stringify(example2)}\n`);
   }, 3000);
 
   setTimeout(() => {
     console.log('📤 Sending Example 3: Branching into alternative reasoning');
-    server.stdin.write(JSON.stringify(example3) + '\n');
+    server.stdin.write(`${JSON.stringify(example3)}\n`);
   }, 5000);
 
   // Close server after demonstration

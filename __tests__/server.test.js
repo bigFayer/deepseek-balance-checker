@@ -7,7 +7,7 @@ describe('服务器测试', () => {
       const response = await request(app)
         .get('/api/health')
         .expect(200);
-      
+
       expect(response.body).toEqual({
         status: 'ok',
         timestamp: expect.any(String)
@@ -21,7 +21,7 @@ describe('服务器测试', () => {
         .post('/api/check-balance')
         .send({})
         .expect(400);
-      
+
       expect(response.body).toEqual({
         error: 'API密钥是必需的',
         success: false
@@ -33,7 +33,7 @@ describe('服务器测试', () => {
         .post('/api/check-balance')
         .send({ apiKey: 'invalid-key' })
         .expect(400);
-      
+
       expect(response.body).toEqual({
         error: 'API密钥必须以sk-开头',
         success: false
@@ -45,7 +45,7 @@ describe('服务器测试', () => {
         .post('/api/check-balance')
         .send({ apiKey: 'sk-short' })
         .expect(400);
-      
+
       expect(response.body).toEqual({
         error: 'API密钥长度过短',
         success: false
@@ -57,7 +57,7 @@ describe('服务器测试', () => {
         .post('/api/check-balance')
         .send({ apiKey: 'sk-invalid@character' })
         .expect(400);
-      
+
       expect(response.body).toEqual({
         error: 'API密钥包含非法字符',
         success: false

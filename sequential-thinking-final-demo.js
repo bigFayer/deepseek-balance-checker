@@ -40,7 +40,7 @@ server.on('close', (code) => {
 });
 
 // Demonstrate the sequentialthinking tool
-function demonstrateSequentialThinking () {
+function demonstrateSequentialThinking() {
   console.log('\n🚀 Starting Sequential Thinking Tool Demonstration...\n');
 
   // Step 1: Initialize the MCP connection
@@ -111,25 +111,25 @@ function demonstrateSequentialThinking () {
   // Send initialization
   setTimeout(() => {
     console.log('📤 Sending initialization request...');
-    server.stdin.write(JSON.stringify(initialize) + '\n');
+    server.stdin.write(`${JSON.stringify(initialize)}\n`);
   }, 1000);
 
   // Send first thinking step
   setTimeout(() => {
     console.log('📤 Sending first thought: Problem breakdown...');
-    server.stdin.write(JSON.stringify(solveProblem) + '\n');
+    server.stdin.write(`${JSON.stringify(solveProblem)}\n`);
   }, 2000);
 
   // Send second thinking step
   setTimeout(() => {
     console.log('📤 Sending second thought: Data sources and logic...');
-    server.stdin.write(JSON.stringify(continueThinking) + '\n');
+    server.stdin.write(`${JSON.stringify(continueThinking)}\n`);
   }, 4000);
 
   // Send final thinking step
   setTimeout(() => {
     console.log('📤 Sending final thought: User interface design...');
-    server.stdin.write(JSON.stringify(finalThought) + '\n');
+    server.stdin.write(`${JSON.stringify(finalThought)}\n`);
   }, 6000);
 
   // Close server after demonstration
