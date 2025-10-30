@@ -87,16 +87,37 @@ async function checkBalance () {
   // 显示加载状态
   showLoading();
 
+  // 创建AbortController用于请求超时控制
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30秒超时
+
   try {
+    const startTime = performance.now();
+    
     const response = await fetch('/api/check-balance', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest' // 添加请求头标识AJAX请求
       },
-      body: JSON.stringify({ apiKey })
+      body: JSON.stringify({ apiKey }),
+      signal: controller.signal
     });
 
+    clearTimeout(timeoutId);
+    const responseTime = (performance.now() - startTime).toFixed(0);
+    
+    // 检查响应状态
+    if (!response.ok) {
+      throw new Error(`服务器响应错误: ${response.status} ${response.statusText}`);
+    }
+
     const data = await response.json();
+
+    // 添加响应时间到结果数据中
+    if (data.success && data.data) {
+      data.data.responseTime = `${responseTime}ms`;
+    }
 
     if (data.success) {
       showResult(data.data);
@@ -109,6 +130,7 @@ async function checkBalance () {
       }
     }
   } catch (err) {
+    clearTimeout(timeoutId);
     console.error('请求错误:', err);
 
     // 提供更详细的错误信息
@@ -120,10 +142,12 @@ async function checkBalance () {
 
     // 根据错误类型提供更友好的错误消息
     let errorMessage = '网络连接失败，请检查网络后重试';
-    if (err.name === 'TypeError' && err.message.includes('fetch')) {
-      errorMessage = '网络请求失败，请检查网络连接或服务器状态';
-    } else if (err.name === 'AbortError') {
+    if (err.name === 'AbortError') {
       errorMessage = '请求超时，请稍后重试';
+    } else if (err.name === 'TypeError' && err.message.includes('fetch')) {
+      errorMessage = '网络请求失败，请检查网络连接或服务器状态';
+    } else if (err.message.includes('服务器响应错误')) {
+      errorMessage = err.message;
     }
 
     showError(errorMessage, errorDetails);
@@ -136,6 +160,19 @@ function showLoading () {
   loading.classList.remove('hidden');
   checkBtn.disabled = true;
   checkBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 查询中...';
+  
+  // 添加加载进度提示
+  const loadingText = loading.querySelector('p');
+  if (loadingText) {
+    let dots = 0;
+    const loadingInterval = setInterval(() => {
+      dots = (dots + 1) % 4;
+      loadingText.textContent = '正在查询余额' + '.'.repeat(dots);
+    }, 500);
+    
+    // 存储interval ID以便在加载完成后清除
+    loading.dataset.intervalId = loadingInterval;
+  }
 }
 
 // 显示结果
@@ -174,6 +211,23 @@ function showResult (data) {
     expireTime.textContent = formatDateTime(data.expire_time);
   } else {
     expireInfo.classList.add('hidden');
+  }
+
+  // 添加响应时间信息（如果有）
+  if (data.responseTime) {
+    // 创建或更新响应时间显示元素
+    let responseTimeElement = document.getElementById('responseTime');
+    if (!responseTimeElement) {
+      responseTimeElement = document.createElement('div');
+      responseTimeElement.id = 'responseTime';
+      responseTimeElement.className = 'response-time';
+      
+      // 添加到结果区域标题下方
+      const resultHeader = document.querySelector('.result-header');
+      resultHeader.insertAdjacentElement('afterend', responseTimeElement);
+    }
+    
+    responseTimeElement.innerHTML = `<i class="fas fa-clock"></i> 响应时间: ${data.responseTime}`;
   }
 
   // 添加详细信息到控制台供调试
@@ -238,8 +292,72 @@ function showError (message, details = null) {
   }, 100);
 }
 
+// 显示Toast通知
+function showToast(message, type = 'info') {
+  // 创建toast元素
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+  
+  // 添加样式
+  toast.style.position = 'fixed';
+  toast.style.bottom = '20px';
+  toast.style.right = '20px';
+  toast.style.padding = '12px 20px';
+  toast.style.borderRadius = '6px';
+  toast.style.color = 'white';
+  toast.style.fontWeight = '500';
+  toast.style.zIndex = '1000';
+  toast.style.opacity = '0';
+  toast.style.transform = 'translateY(20px)';
+  toast.style.transition = 'all 0.3s ease';
+  
+  // 根据类型设置背景色
+  switch (type) {
+    case 'success':
+      toast.style.backgroundColor = '#10b981';
+      break;
+    case 'error':
+      toast.style.backgroundColor = '#ef4444';
+      break;
+    case 'warning':
+      toast.style.backgroundColor = '#f59e0b';
+      break;
+    default:
+      toast.style.backgroundColor = '#3b82f6';
+  }
+  
+  // 添加到页面
+  document.body.appendChild(toast);
+  
+  // 显示动画
+  setTimeout(() => {
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateY(0)';
+  }, 10);
+  
+  // 自动隐藏
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(20px)';
+    
+    // 移除元素
+    setTimeout(() => {
+      if (document.body.contains(toast)) {
+        document.body.removeChild(toast);
+      }
+    }, 300);
+  }, 3000);
+}
+
 // 隐藏所有区域
 function hideAllSections () {
+  // 清除加载动画的interval（如果有）
+  if (loading.dataset.intervalId) {
+    clearInterval(loading.dataset.intervalId);
+    delete loading.dataset.intervalId;
+  }
+  
   loading.classList.add('hidden');
   result.classList.add('hidden');
   error.classList.add('hidden');
@@ -358,12 +476,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 检查网络状态
   window.addEventListener('online', () => {
-    console.log('网络连接已恢复');
+    showToast('网络连接已恢复', 'success');
   });
 
   window.addEventListener('offline', () => {
     console.log('网络连接已断开');
     showError('网络连接已断开，请检查网络设置');
+  });
+  
+  // 添加页面加载性能监控
+  window.addEventListener('load', () => {
+    const loadTime = performance.now();
+    console.log(`页面加载完成，耗时: ${loadTime.toFixed(2)}ms`);
   });
 });
 
