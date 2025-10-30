@@ -7,6 +7,7 @@ const error = document.getElementById('error');
 
 // 结果显示元素
 const currentBalance = document.getElementById('currentBalance');
+// eslint-disable-next-line no-unused-vars
 const currency = document.getElementById('currency');
 const totalGranted = document.getElementById('totalGranted');
 const totalUsed = document.getElementById('totalUsed');
@@ -72,11 +73,33 @@ window.togglePasswordVisibility = function () {
 
 // 重试查询 - 导出供HTML使用
 window.retryCheck = function () {
-  checkBalance();
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (apiKey) {
+    // 清除之前的错误信息
+    const errorDiv = document.getElementById('error');
+    const existingDetails = errorDiv.querySelector('.error-details');
+    if (existingDetails) {
+      errorDiv.removeChild(existingDetails);
+    }
+    const existingRetryBtn = errorDiv.querySelector('.retry-btn');
+    if (existingRetryBtn) {
+      errorDiv.removeChild(existingRetryBtn);
+    }
+
+    // 清除之前的结果显示
+    const resultDiv = document.getElementById('result');
+    resultDiv.style.opacity = '0';
+    resultDiv.style.transform = 'translateY(20px)';
+
+    // 重新执行查询
+    checkBalance();
+  } else {
+    showError('请先输入API密钥');
+  }
 };
 
 // 查询余额
-async function checkBalance () {
+async function checkBalance() {
   const apiKey = apiKeyInput.value.trim();
 
   if (!apiKey) {
@@ -104,6 +127,7 @@ async function checkBalance () {
       signal: controller.signal
     });
 
+<<<<<<< HEAD
     clearTimeout(timeoutId);
     const responseTime = (performance.now() - startTime).toFixed(0);
     
@@ -113,6 +137,17 @@ async function checkBalance () {
     }
 
     const data = await response.json();
+=======
+    clearTimeout(timeoutId);
+    const responseTime = (performance.now() - startTime).toFixed(0);
+    
+    // 检查响应状态
+    if (!response.ok) {
+      throw new Error(`服务器响应错误: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+>>>>>>> master
 
     // 添加响应时间到结果数据中
     if (data.success && data.data) {
@@ -120,6 +155,10 @@ async function checkBalance () {
     }
 
     if (data.success) {
+      // 检查data字段是否存在
+      if (!data.data) {
+        throw new Error('成功响应中缺少data字段');
+      }
       showResult(data.data);
     } else {
       // 如果有详细错误信息，传递给错误显示函数
@@ -131,6 +170,7 @@ async function checkBalance () {
     }
   } catch (err) {
     clearTimeout(timeoutId);
+    // eslint-disable-next-line no-console
     console.error('请求错误:', err);
 
     // 提供更详细的错误信息
@@ -144,10 +184,19 @@ async function checkBalance () {
     let errorMessage = '网络连接失败，请检查网络后重试';
     if (err.name === 'AbortError') {
       errorMessage = '请求超时，请稍后重试';
+<<<<<<< HEAD
+    } else if (err.message.includes('JSON解析失败')) {
+      errorMessage = '服务器返回了无效的JSON格式，请稍后重试';
+    } else if (err.message.includes('非JSON响应')) {
+      errorMessage = '服务器返回了非JSON格式响应，请稍后重试';
+    } else if (err.message.includes('空响应')) {
+      errorMessage = '服务器返回了空响应，请稍后重试';
+=======
     } else if (err.name === 'TypeError' && err.message.includes('fetch')) {
       errorMessage = '网络请求失败，请检查网络连接或服务器状态';
     } else if (err.message.includes('服务器响应错误')) {
       errorMessage = err.message;
+>>>>>>> master
     }
 
     showError(errorMessage, errorDetails);
@@ -155,7 +204,7 @@ async function checkBalance () {
 }
 
 // 显示加载状态
-function showLoading () {
+function showLoading() {
   hideAllSections();
   loading.classList.remove('hidden');
   checkBtn.disabled = true;
@@ -176,21 +225,30 @@ function showLoading () {
 }
 
 // 显示结果
-function showResult (data) {
+function showResult(data) {
   hideAllSections();
   result.classList.remove('hidden');
 
   // 更新余额信息
-  currentBalance.textContent = formatCurrency(data.balance, data.currency);
-  currency.textContent = data.currency || 'USD';
-  totalGranted.textContent = formatCurrency(data.total_granted, data.currency);
-  totalUsed.textContent = formatCurrency(data.total_used, data.currency);
+  const currencyType = data.currency || 'CNY';
+  const currencySymbol = getCurrencySymbol(currencyType);
+
+  // 使用正确的货币格式化函数
+  currentBalance.textContent = formatCurrency(data.balance, currencyType);
+  totalGranted.textContent = formatCurrency(data.total_granted, currencyType);
+  totalUsed.textContent = formatCurrency(data.total_used, currencyType);
+
+  // 更新所有货币符号显示
+  document.querySelectorAll('.currency').forEach((el) => {
+    // eslint-disable-next-line no-param-reassign
+    el.textContent = `${currencySymbol} ${currencyType}`;
+  });
 
   // 计算使用进度
   if (data.total_granted > 0) {
     const usagePercent = (data.total_used / data.total_granted) * 100;
-    usagePercentage.textContent = usagePercent.toFixed(1) + '%';
-    progressFill.style.width = Math.min(usagePercent, 100) + '%';
+    usagePercentage.textContent = `${usagePercent.toFixed(1)}%`;
+    progressFill.style.width = `${Math.min(usagePercent, 100)}%`;
 
     // 根据使用率设置进度条颜色
     if (usagePercent > 80) {
@@ -213,6 +271,13 @@ function showResult (data) {
     expireInfo.classList.add('hidden');
   }
 
+<<<<<<< HEAD
+  // 只在开发环境中记录详细响应数据
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    // eslint-disable-next-line no-console
+    console.log('DeepSeek API 响应数据:', data);
+  }
+=======
   // 添加响应时间信息（如果有）
   if (data.responseTime) {
     // 创建或更新响应时间显示元素
@@ -232,9 +297,11 @@ function showResult (data) {
 
   // 添加详细信息到控制台供调试
   console.log('DeepSeek API 响应数据:', data);
+>>>>>>> master
 
   // 如果所有余额都是0，显示提示信息
   if (data.balance === 0 && data.total_granted === 0 && data.total_used === 0) {
+    // eslint-disable-next-line no-console
     console.warn('所有余额数据都是0，可能是API响应格式问题或账户无余额');
   }
 
@@ -253,10 +320,14 @@ function showResult (data) {
 }
 
 // 显示错误
-function showError (message, details = null) {
+function showError(message, details = null) {
   hideAllSections();
   error.classList.remove('hidden');
   errorMessage.textContent = message;
+
+  // 记录错误详情到控制台
+  // eslint-disable-next-line no-console
+  console.error('显示错误:', message, details);
 
   // 如果有详细信息，添加到错误区域
   if (details) {
@@ -277,6 +348,20 @@ function showError (message, details = null) {
 
     error.appendChild(detailsElement);
   }
+
+  // 添加重试按钮
+  const retryBtn = document.createElement('button');
+  retryBtn.className = 'retry-btn';
+  retryBtn.innerHTML = '<i class="fas fa-redo"></i> 重试';
+  retryBtn.onclick = window.retryCheck;
+
+  // 移除之前的重试按钮（如果有）
+  const existingRetryBtn = error.querySelector('.retry-btn');
+  if (existingRetryBtn) {
+    error.removeChild(existingRetryBtn);
+  }
+
+  error.appendChild(retryBtn);
 
   // 恢复按钮状态
   checkBtn.disabled = false;
@@ -351,6 +436,9 @@ function showToast(message, type = 'info') {
 }
 
 // 隐藏所有区域
+<<<<<<< HEAD
+function hideAllSections() {
+=======
 function hideAllSections () {
   // 清除加载动画的interval（如果有）
   if (loading.dataset.intervalId) {
@@ -358,18 +446,42 @@ function hideAllSections () {
     delete loading.dataset.intervalId;
   }
   
+>>>>>>> master
   loading.classList.add('hidden');
   result.classList.add('hidden');
   error.classList.add('hidden');
 }
 
 
+// 获取货币符号
+function getCurrencySymbol(currency) {
+  const symbols = {
+    'USD': '$',
+    'CNY': '¥',
+    'RMB': '¥',
+    'EUR': '€',
+    'GBP': '£',
+    'JPY': '¥'
+  };
+  return symbols[currency] || '$';
+}
+
+// 格式化货币（不带符号） - 暂未使用但保留以备后用
+// eslint-disable-next-line no-unused-vars
+function formatCurrencyWithoutSymbol(amount) {
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount);
+}
+
 // 格式化货币
-function formatCurrency (amount, currency = 'USD') {
+function formatCurrency(amount, currency = 'CNY') {
   const num = parseFloat(amount) || 0;
 
   // 根据货币类型选择格式化选项
   if (currency === 'CNY' || currency === 'RMB') {
+    // eslint-disable-next-line no-undef
     return new Intl.NumberFormat('zh-CN', {
       style: 'currency',
       currency: 'CNY',
@@ -377,10 +489,11 @@ function formatCurrency (amount, currency = 'USD') {
       maximumFractionDigits: 2
     }).format(num);
   } else {
-    // 默认使用USD格式
-    return new Intl.NumberFormat('en-US', {
+    // 默认使用CNY格式
+    // eslint-disable-next-line no-undef
+    return new Intl.NumberFormat('zh-CN', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'CNY',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }).format(num);
@@ -388,11 +501,12 @@ function formatCurrency (amount, currency = 'USD') {
 }
 
 // 格式化日期时间
-function formatDateTime (timestamp) {
+function formatDateTime(timestamp) {
   if (!timestamp) return '未知';
 
   try {
     const date = new Date(timestamp);
+    // eslint-disable-next-line no-undef
     return date.toLocaleString('zh-CN', {
       year: 'numeric',
       month: '2-digit',
@@ -421,6 +535,7 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.removeItem('deepseek_api_key');
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.warn('无法访问本地存储:', error);
   }
 
@@ -476,10 +591,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 检查网络状态
   window.addEventListener('online', () => {
+    // eslint-disable-next-line no-console
+    console.log('网络连接已恢复');
     showToast('网络连接已恢复', 'success');
   });
 
   window.addEventListener('offline', () => {
+    // eslint-disable-next-line no-console
     console.log('网络连接已断开');
     showError('网络连接已断开，请检查网络设置');
   });
@@ -499,6 +617,7 @@ const utils = {
       await navigator.clipboard.writeText(text);
       this.showToast('已复制到剪贴板');
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('复制失败:', err);
       this.showToast('复制失败', 'error');
     }

@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 // 测试DeepSeek API调用
-async function testDeepSeekAPI () {
+async function testDeepSeekAPI() {
   console.log('开始测试DeepSeek API...');
 
   // 这里需要你提供一个真实的API密钥进行测试

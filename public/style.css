@@ -295,21 +295,45 @@ body {
 
 .balance-card {
     background: white;
-    padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border: 2px solid transparent;
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.03);
 }
 
 .balance-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
 }
 
 .balance-card.primary {
-    border-color: var(--primary-color);
-    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    border: 2px solid var(--primary-color);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+}
+
+.balance-card.primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--primary-color), #6366f1);
+    border-radius: 18px 18px 0 0;
+}
+
+.balance-card.primary::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.03), transparent);
+    pointer-events: none;
 }
 
 .card-icon {
@@ -336,17 +360,37 @@ body {
     font-weight: 600;
 }
 
-.balance-amount {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: var(--text-primary);
+.balance-amount-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     margin-bottom: 5px;
 }
 
+.balance-amount {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
 .currency {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    font-weight: 500;
+    font-size: 1.1rem;
+    color: var(--primary-color);
+    font-weight: 600;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(37, 99, 235, 0.05));
+    padding: 4px 10px;
+    border-radius: 15px;
+    display: inline-block;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+    border: 1px solid rgba(37, 99, 235, 0.2);
+    transition: all 0.3s ease;
+}
+
+.currency:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(37, 99, 235, 0.15);
 }
 
 /* 使用进度条 */
@@ -585,5 +629,22 @@ body {
     
     .subtitle {
         font-size: 1rem;
+    }
+}
+
+@media (max-width: 320px) {
+    .container {
+        padding: 10px;
+    }
+    .logo h1 {
+        font-size: 1.5rem;
+    }
+    .input-section,
+    .result-section,
+    .error-section {
+        padding: 20px 15px;
+    }
+    .balance-card {
+        padding: 20px;
     }
 }

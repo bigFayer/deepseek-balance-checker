@@ -40,7 +40,7 @@ server.on('close', (code) => {
 });
 
 // Test the MCP server properly
-function testMCPServer () {
+function testMCPServer() {
   console.log('\n🚀 Starting MCP Server Test...\n');
 
   // Step 1: Initialize the MCP connection
@@ -71,13 +71,13 @@ function testMCPServer () {
   // Send initialization
   setTimeout(() => {
     console.log('📤 Sending initialization request...');
-    server.stdin.write(JSON.stringify(initialize) + '\n');
+    server.stdin.write(`${JSON.stringify(initialize)}\n`);
   }, 1000);
 
   // Send tools list request
   setTimeout(() => {
     console.log('📤 Requesting available tools...');
-    server.stdin.write(JSON.stringify(listTools) + '\n');
+    server.stdin.write(`${JSON.stringify(listTools)}\n`);
   }, 2000);
 
   // Close server after test
