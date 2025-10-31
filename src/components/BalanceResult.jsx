@@ -1,6 +1,6 @@
 import React from 'react';
 
-const BalanceResult = ({ balanceData, error, onReset }) => {
+const BalanceResult = ({ balanceData, error, onReset, provider = 'deepseek' }) => {
   if (error) {
     return (
       <div className="result error">
@@ -28,9 +28,13 @@ const BalanceResult = ({ balanceData, error, onReset }) => {
     return num !== undefined && !isNaN(num) ? num.toFixed(2) : '0.00';
   };
 
+  const getProviderName = () => {
+    return provider === 'deepseek' ? 'DeepSeek' : 'SiliconFlow';
+  };
+
   return (
     <div className="result">
-      <h3>余额信息</h3>
+      <h3>{getProviderName()} API 余额信息</h3>
       <div className="balance-info">
         <div className="info-item">
           <span className="label">当前余额:</span>

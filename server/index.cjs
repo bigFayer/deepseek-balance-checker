@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const balanceRoutes = require('./routes/balance.cjs');
+const siliconflowRoutes = require('./routes/siliconflow.cjs');
 
 // 加载环境变量
 dotenv.config();
@@ -16,6 +17,7 @@ app.use(express.json());
 
 // 路由
 app.use('/api/balance', balanceRoutes);
+app.use('/api/siliconflow', siliconflowRoutes);
 
 // 健康检查端点
 app.get('/health', (req, res) => {

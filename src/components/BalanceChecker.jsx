@@ -28,27 +28,27 @@ const BalanceChecker = ({ onCheckBalance, isLoading }) => {
             DeepSeek API 密钥
           </label>
           <div className="input-container">
-            <input
-              type={showApiKey ? 'text' : 'password'}
-              id="apiKey"
-              className={`input ${isFocused ? 'focused' : ''}`}
-              value={apiKey}
-              onChange={handleInputChange}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              placeholder="请输入您的DeepSeek API密钥"
-              disabled={isLoading}
-              required
-            />
-            <button
-              type="button"
-              className="toggle-visibility"
-              onClick={toggleApiKeyVisibility}
-              disabled={isLoading}
-            >
-              {showApiKey ? '隐藏' : '显示'}
-            </button>
-          </div>
+        <input
+          type={showApiKey ? 'text' : 'password'}
+          id="apiKey"
+          className={`input ${isFocused ? 'focused' : ''}`}
+          value={apiKey}
+          onChange={handleInputChange}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder="请输入您的DeepSeek API密钥"
+          disabled={isLoading}
+          required
+        />
+        <button
+          type="button"
+          className="toggle-visibility"
+          onClick={toggleApiKeyVisibility}
+          disabled={isLoading}
+        >
+          {showApiKey ? '隐藏' : '显示'}
+        </button>
+      </div>
         </div>
         <button
           type="submit"

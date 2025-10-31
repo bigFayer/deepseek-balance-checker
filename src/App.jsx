@@ -2,13 +2,16 @@ import React, { useState } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import BalanceChecker from './components/BalanceChecker';
+import SiliconFlowChecker from './components/SiliconFlowChecker';
 import BalanceResult from './components/BalanceResult';
 import LoadingSpinner from './components/LoadingSpinner';
+import Tabs from './components/Tabs';
 
 function App() {
   const [balanceData, setBalanceData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('deepseek'); // 'deepseek' 或 'siliconflow'
 
   const handleCheckBalance = async (apiKey) => {
     if (!apiKey.trim()) {
@@ -21,7 +24,10 @@ function App() {
 
     try {
       console.log('发送API请求...');
-      const response = await fetch('/api/balance', {
+      // 根据当前选项卡选择不同的API端点
+      const apiUrl = activeTab === 'deepseek' ? '/api/balance' : '/api/siliconflow';
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -69,12 +75,21 @@ function App() {
     setError(null);
   };
 
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    // 切换选项卡时重置状态
+    setBalanceData(null);
+    setError(null);
+  };
+
   return (
     <div className="app">
       <Header />
       
       <main className="main">
         <div className="container">
+          <Tabs activeTab={activeTab} setActiveTab={handleTabChange} />
+          
           {isLoading ? (
             <LoadingSpinner />
           ) : balanceData || error ? (
@@ -82,9 +97,15 @@ function App() {
               balanceData={balanceData} 
               error={error} 
               onReset={handleReset} 
+              provider={activeTab}
+            />
+          ) : activeTab === 'deepseek' ? (
+            <BalanceChecker 
+              onCheckBalance={handleCheckBalance} 
+              isLoading={isLoading} 
             />
           ) : (
-            <BalanceChecker 
+            <SiliconFlowChecker 
               onCheckBalance={handleCheckBalance} 
               isLoading={isLoading} 
             />
