@@ -24,6 +24,26 @@
   font-size: 1.5rem;
 }
 
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.export-button {
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.export-button:hover {
+  background-color: #0b7dda;
+}
+
 .reset-button {
   background-color: #4CAF50;
   color: white;
@@ -124,8 +144,19 @@
 
 .usage-progress {
   height: 100%;
-  background-color: #4CAF50;
   transition: width 0.3s ease;
+}
+
+.usage-progress.low-usage {
+  background-color: #4CAF50;
+}
+
+.usage-progress.medium-usage {
+  background-color: #FF9800;
+}
+
+.usage-progress.high-usage {
+  background-color: #F44336;
 }
 
 .usage-text {
@@ -139,9 +170,50 @@
   margin-top: 30px;
 }
 
-.batch-details h3 {
+.details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.batch-details h3 {
+  margin: 0;
   color: #333;
+}
+
+.details-controls {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.filter-control, .sort-control {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.filter-control label, .sort-control label {
+  font-size: 14px;
+  color: #555;
+}
+
+.filter-control select, .sort-control select {
+  padding: 5px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: white;
+}
+
+.no-results {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  font-style: italic;
 }
 
 .details-table {
@@ -152,14 +224,14 @@
 
 .table-header {
   display: grid;
-  grid-template-columns: 60px 1fr 80px 100px 80px;
+  grid-template-columns: 60px 1fr 80px 100px 80px 100px 100px 1fr;
   background-color: #f5f5f5;
   font-weight: bold;
 }
 
 .table-row {
   display: grid;
-  grid-template-columns: 60px 1fr 80px 100px 80px;
+  grid-template-columns: 60px 1fr 80px 100px 80px 100px 100px 1fr;
   border-top: 1px solid #ddd;
 }
 
@@ -171,6 +243,12 @@
   background-color: #fff8f8;
 }
 
+/* 为余额列添加悬停效果 */
+.table-row:hover .table-cell:nth-child(4) {
+  background-color: rgba(33, 150, 243, 0.2);
+  transition: background-color 0.2s ease;
+}
+
 .table-cell {
   padding: 12px 15px;
   border-right: 1px solid #ddd;
@@ -179,8 +257,41 @@
   word-break: break-all;
 }
 
+/* 突出显示余额列 */
+.table-cell:nth-child(4) {
+  font-weight: bold;
+  font-size: 16px;
+  color: #1565C0;
+  background-color: rgba(33, 150, 243, 0.1);
+}
+
 .table-cell:last-child {
   border-right: none;
+}
+
+.error-message {
+  font-size: 12px;
+  color: #F44336;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.usage-percentage {
+  font-weight: bold;
+}
+
+.usage-percentage.low-usage {
+  color: #4CAF50;
+}
+
+.usage-percentage.medium-usage {
+  color: #FF9800;
+}
+
+.usage-percentage.high-usage {
+  color: #F44336;
 }
 
 .key-cell {
@@ -199,6 +310,33 @@
   cursor: help;
 }
 
+.summary-average {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+.average-item {
+  text-align: center;
+}
+
+.average-label {
+  display: block;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.average-value {
+  display: block;
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
 @media (max-width: 768px) {
   .summary-stats {
     flex-direction: column;
@@ -209,14 +347,63 @@
     grid-template-columns: 1fr;
   }
   
+  .details-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .details-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
   .table-header,
   .table-row {
-    grid-template-columns: 40px 1fr 60px 80px 60px;
+    grid-template-columns: 40px 1fr 60px 80px 60px 80px 80px 1fr;
   }
   
   .table-cell {
-    padding: 8px 10px;
+    padding: 8px 5px;
+    font-size: 12px;
+  }
+  
+  /* 在移动设备上保持余额列的突出显示 */
+  .table-cell:nth-child(4) {
     font-size: 14px;
+  }
+  
+  .key-cell {
+    font-size: 10px;
+  }
+  
+  .summary-average {
+    flex-wrap: wrap;
+  }
+  
+  .average-item {
+    flex: 1;
+    min-width: 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .table-header,
+  .table-row {
+    grid-template-columns: 30px 1fr 50px 60px 50px 60px 60px 1fr;
+  }
+  
+  .table-cell {
+    padding: 6px 3px;
+    font-size: 10px;
+  }
+  
+  /* 在小屏幕设备上保持余额列的突出显示 */
+  .table-cell:nth-child(4) {
+    font-size: 12px;
+  }
+  
+  .error-message {
+    max-width: 100px;
   }
 }
 
@@ -239,5 +426,10 @@
   .table-cell {
     padding: 6px 8px;
     font-size: 12px;
+  }
+  
+  /* 在最小屏幕设备上保持余额列的突出显示 */
+  .table-cell:nth-child(4) {
+    font-size: 14px;
   }
 }
