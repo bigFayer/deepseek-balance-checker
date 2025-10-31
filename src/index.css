@@ -427,6 +427,74 @@ body {
   position: relative;
 }
 
+/* Mode toggle buttons */
+.mode-toggle {
+  display: flex;
+  margin-bottom: 1.5rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.mode-button {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.3s;
+}
+
+.mode-button:hover {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.mode-button.active {
+  color: white;
+  background-color: #6366f1;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.mode-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Textarea for batch input */
+.textarea {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: white;
+  font-family: monospace;
+  font-size: 0.9rem;
+  resize: vertical;
+  min-height: 120px;
+  transition: border-color 0.3s, background-color 0.3s;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #6366f1;
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.textarea:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 1.5rem;
@@ -451,5 +519,15 @@ body {
   .tab {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
+  }
+  
+  .mode-button {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.85rem;
+  }
+  
+  .textarea {
+    min-height: 100px;
+    font-size: 0.85rem;
   }
 }
