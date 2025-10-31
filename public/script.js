@@ -53,7 +53,7 @@ apiKeyInput.addEventListener('keypress', (e) => {
 });
 
 // 切换密码可见性
-function togglePassword() {
+window.togglePassword = function() {
   const input = document.getElementById('apiKey');
   const toggleBtn = document.querySelector('.toggle-password i');
 
@@ -69,7 +69,7 @@ function togglePassword() {
 }
 
 // 查询余额
-async function checkBalance() {
+window.checkBalance = async function() {
   const apiKey = apiKeyInput.value.trim();
 
   if (!apiKey) {
@@ -102,7 +102,7 @@ async function checkBalance() {
 }
 
 // 重试查询
-function retryCheck() {
+window.retryCheck = function() {
   if (apiKeyInput.value.trim()) {
     checkBalance();
   } else {
