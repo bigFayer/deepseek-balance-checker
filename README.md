@@ -1,5 +1,7 @@
 # DeepSeek API 余额查询工具 v3.0
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FbigFayer%2Fdeepseek-balance-checker)
+
 一个现代化、安全高效的Web应用，用于查询DeepSeek API密钥的余额和使用情况。
 
 ## 🚀 新特性
