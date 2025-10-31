@@ -74,25 +74,33 @@ jspm_packages/
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
 
-# macOS
+# Temporary folders
+tmp/
+temp/
+
+# OS generated files
 .DS_Store
-
-# Windows
-Thumbs.db
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
 ehthumbs.db
-Desktop.ini
+Thumbs.db
 
-# IDE
+# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# Build outputs
+# Build files
 dist/
 build/
 
-# Temporary files
-tmp/
-temp/
+# Test files
+__tests__/
+*.test.js
+test-*.js
+debug-*.js
+sequential-thinking-*.js

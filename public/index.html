@@ -14,7 +14,7 @@
                 <i class="fas fa-robot"></i>
                 <h1>DeepSeek API 余额查询</h1>
             </div>
-            <p class="subtitle">快速查询您的DeepSeek API账户余额和使用情况</p>
+            <p class="subtitle">快速查询您的DeepSeek API账户余额</p>
         </header>
 
         <main class="main-content">
@@ -30,7 +30,7 @@
                         placeholder="请输入您的DeepSeek API密钥"
                         autocomplete="off"
                     >
-                    <button type="button" class="toggle-password" onclick="togglePasswordVisibility()">
+                    <button type="button" class="toggle-password" onclick="togglePassword()">
                         <i class="fas fa-eye"></i>
                     </button>
                 </div>
@@ -64,10 +64,7 @@
                         </div>
                         <div class="card-content">
                             <h3>当前余额</h3>
-                            <div class="balance-amount-container">
-                                <span class="currency" id="currency"></span>
-                                <p class="balance-amount" id="currentBalance">0.00</p>
-                            </div>
+                            <div class="balance-amount" id="currentBalance">¥0.00</div>
                         </div>
                     </div>
 
@@ -77,10 +74,7 @@
                         </div>
                         <div class="card-content">
                             <h3>总授予额度</h3>
-                            <div class="balance-amount-container">
-                                <span class="currency"></span>
-                                <p class="balance-amount" id="totalGranted">0.00</p>
-                            </div>
+                            <div class="balance-amount" id="totalGranted">¥0.00</div>
                         </div>
                     </div>
 
@@ -90,10 +84,7 @@
                         </div>
                         <div class="card-content">
                             <h3>已使用额度</h3>
-                            <div class="balance-amount-container">
-                                <span class="currency"></span>
-                                <p class="balance-amount" id="totalUsed">0.00</p>
-                            </div>
+                            <div class="balance-amount" id="totalUsed">¥0.00</div>
                         </div>
                     </div>
                 </div>
@@ -128,22 +119,10 @@
         </main>
 
         <footer class="footer">
-            <div class="footer-content">
-                <p>
-                    <i class="fas fa-shield-alt"></i>
-                    您的API密钥仅在本地处理，不会发送到第三方服务器
-                </p>
-                <div class="footer-links">
-                    <a href="https://platform.deepseek.com/" target="_blank" rel="noopener">
-                        <i class="fas fa-external-link-alt"></i>
-                        DeepSeek平台
-                    </a>
-                    <a href="https://github.com" target="_blank" rel="noopener">
-                        <i class="fab fa-github"></i>
-                        GitHub
-                    </a>
-                </div>
-            </div>
+            <p>
+                <i class="fas fa-shield-alt"></i>
+                您的API密钥仅在本地处理，不会发送到第三方服务器
+            </p>
         </footer>
     </div>
 
